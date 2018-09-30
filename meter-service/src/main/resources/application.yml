@@ -1,0 +1,80 @@
+spring:
+  application:
+      name: meter-service
+  profiles:
+    active: local
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+---
+spring:
+  profiles: local
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: 127.0.0.1:9092
+      bindings:
+        meter-consumer:
+          group: meter-service
+          destination: meter
+        meter-producer:
+          destination: meter
+        kb-consumer:
+          group: meter-service
+          destination: kb
+        kb-producer:
+          destination: kb
+  redis-host: 127.0.0.1:6379
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://localhost:3306/killbill
+    username: root
+    password: killbill
+
+killbill:
+  url: http://localhost:18080
+  username: admin
+  password: password
+  api-key: bob2
+  api-secret: lazar
+
+---
+spring:
+  profiles: docker
+  data:
+    mongodb:
+      uri: mongodb://${MONGO_HOST}:27017/test
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: ${KAFKA_HOST}:9092
+      bindings:
+        meter-consumer:
+          group: meter-service
+          destination: meter
+        meter-producer:
+          destination: meter
+  redis-host: ${REDIS_HOST}:6379
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://localhost:3306/killbill
+    username: root
+    password: killbill
