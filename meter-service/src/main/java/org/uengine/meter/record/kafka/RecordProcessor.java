@@ -1,5 +1,6 @@
 package org.uengine.meter.record.kafka;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -17,12 +18,15 @@ import org.springframework.util.MimeTypeUtils;
 import org.uengine.meter.billing.BillingController;
 import org.uengine.meter.billing.BillingService;
 import org.uengine.meter.record.Record;
+import org.uengine.meter.record.RecordInfluxRepository;
+import org.uengine.meter.rule.Unit;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.net.URLDecoder;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -45,7 +49,7 @@ public class RecordProcessor {
     private BillingController billingController;
 
     @Autowired
-    private InfluxDB influxDBTemplate;
+    private RecordInfluxRepository recordInfluxRepository;
 
     private RecordStreams recordStreams;
 
@@ -83,33 +87,36 @@ public class RecordProcessor {
                         final RecordMessage recordMessage = objectMapper.readValue(value, RecordMessage.class);
 
                         //if log type
+                        long count = 0L;
                         if (RecordMessage.RecordMessageType.LOG.equals(recordMessage.getType())) {
                             final String[] split = recordMessage.getMessage().split("\n");
-                            Arrays.stream(split)
+                            count = Arrays.stream(split)
                                     .map(line -> new Record(line))
-                                    .filter(record -> !record.empty())
+                                    .filter(record -> record.valid())
+                                    .map(record -> recordInfluxRepository.write(record))
                                     .map(record -> {
-                                        Point point = Point.measurement("record")
-                                                .time(record.getTime(), TimeUnit.MILLISECONDS)
-                                                .addField("amount", record.getAmount())
-                                                .addField("user", record.getUser())
-                                                .addField("unit", record.getUnit())
-                                                .build();
-
-                                        influxDBTemplate.write(point);
-                                        return point;
-                                    });
+                                        //TODO limit proccess.
+                                        return record;
+                                    })
+                                    .count();
                         }
+                        //if json type
+                        if (RecordMessage.RecordMessageType.JSON.equals(recordMessage.getType())) {
+                            final List<Record> records = (List<Record>) objectMapper.readValue(recordMessage.getMessage(), new TypeReference<List<Record>>() {
+                            });
+                            count = records.stream()
+                                    .map(record -> record.completeDomain())
+                                    .filter(record -> record.valid())
+                                    .map(record -> recordInfluxRepository.write(record))
+                                    .count();
+                        }
+                        logger.info(count + " record processed");
 
                     } catch (Exception ex) {
-                        logger.error("update UserSubscriptions failed");
+                        logger.error("insert Record failed");
+                        ex.printStackTrace();
                     } finally {
-                        try {
-                            Map map = new ObjectMapper().readValue(value, Map.class);
-                            billingController.emitterSend(map);
-                        } catch (Exception ex) {
-                            //Nothing, just notification
-                        }
+
                     }
                 }, error -> System.err.println("CAUGHT " + error));
     }

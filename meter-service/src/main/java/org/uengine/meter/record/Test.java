@@ -55,64 +55,33 @@ public class Test {
         String dbName = "meter";
         influxDB.setDatabase(dbName);
 
+//        final long time = System.currentTimeMillis();
+//        System.out.println(time);
+//
+//        final Point build = Point.measurement("cpu")
+//                .time(time, TimeUnit.MILLISECONDS)
+//                .addField("idle", 90L)
+//                .addField("user", 9L)
+//                .addField("system", 1L)
+//                .build();
+//        final String s = build.toString();
+//        System.out.println(s);
+//
+//
+//        influxDB.write(Point.measurement("cpu")
+//                .time(time, TimeUnit.MILLISECONDS)
+//                .addField("idle", 90L)
+//                .addField("user", 9L)
+//                .addField("system", 1L)
+//                .build());
+//
+//        influxDB.write(Point.measurement("disk")
+//                .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+//                .addField("used", 80L)
+//                .addField("free", 1L)
+//                .build());
 
-        influxDB.dropRetentionPolicy("meter-rp1", dbName);
-        influxDB.createRetentionPolicy("meter-rp1", dbName, "30d", 1, true);
-
-        //BatchPoints
-        BatchPoints batchPoints = BatchPoints
-                .database(dbName)
-                .retentionPolicy("defaultPolicy")
-                .build();
-
-        Point point1 = Point.measurement("memory")
-                .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
-                .addField("name", "server1")
-                .addField("free", 4743656L)
-                .addField("used", 1015096L)
-                .addField("buffer", 1010467L)
-                .build();
-
-        Point point2 = Point.measurement("memory")
-                .time(System.currentTimeMillis() - 100, TimeUnit.MILLISECONDS)
-                .addField("name", "server1")
-                .addField("free", 4743696L)
-                .addField("used", 1016096L)
-                .addField("buffer", 1008467L)
-                .build();
-
-        batchPoints.point(point1);
-        batchPoints.point(point2);
-        influxDB.write(batchPoints);
-
-
-        final long time = System.currentTimeMillis();
-        System.out.println(time);
-
-        final Point build = Point.measurement("cpu")
-                .time(time, TimeUnit.MILLISECONDS)
-                .addField("idle", 90L)
-                .addField("user", 9L)
-                .addField("system", 1L)
-                .build();
-        final String s = build.toString();
-        System.out.println(s);
-
-
-        influxDB.write(Point.measurement("cpu")
-                .time(time, TimeUnit.MILLISECONDS)
-                .addField("idle", 90L)
-                .addField("user", 9L)
-                .addField("system", 1L)
-                .build());
-
-        influxDB.write(Point.measurement("disk")
-                .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
-                .addField("used", 80L)
-                .addField("free", 1L)
-                .build());
-
-        Query query = new Query("SELECT idle FROM cpu", dbName);
+        Query query = new Query("SELECT * FROM record", dbName);
 
         influxDB.query(query, queryResult -> {
             // Do something with the result...

@@ -12,6 +12,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
 import org.uengine.meter.billing.BillingController;
+import org.uengine.meter.billing.BillingRedisRepository;
 import org.uengine.meter.billing.BillingService;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
@@ -29,10 +30,7 @@ public class BillingProcessor {
     private BillingService billingService;
 
     @Autowired
-    private BillingConfig billingConfig;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+    private BillingRedisRepository billingRedisRepository;
 
     @Autowired
     private BillingController billingController;
@@ -79,11 +77,19 @@ public class BillingProcessor {
                                 "SUBSCRIPTION_CHANGE",
                                 "SUBSCRIPTION_CANCEL",
                                 "SUBSCRIPTION_UNCANCEL",
-                                "SUBSCRIPTION_BCD_CHANGE"
+                                "SUBSCRIPTION_BCD_CHANGE",
+                                "BUNDLE_PAUSE",
+                                "BUNDLE_RESUME"
                         };
 
                         if (Arrays.asList(acceptTypes).contains(eventType)) {
-                            billingService.updateUserSubscriptionsByAccountId(accountId);
+                            final String userName = billingService.getUserNameFromKBAccountId(accountId);
+                            if (userName == null) {
+                                billingRedisRepository.deleteByUserName(userName);
+                            }
+                            if (userName != null) {
+                                billingRedisRepository.updateByUserName(userName);
+                            }
                         }
                     } catch (Exception ex) {
                         logger.error("update UserSubscriptions failed");

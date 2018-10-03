@@ -3,56 +3,49 @@ package org.uengine.meter.billing;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.uengine.meter.billing.kb.KBApi;
+import org.uengine.meter.billing.kb.KBConfig;
+import org.uengine.meter.rule.Unit;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class BillingRedisRepository {
 
     private Logger logger = LoggerFactory.getLogger(BillingRedisRepository.class);
 
-    private static final String KEY = "USER_SUBSCRIPTIONS";
+    @Autowired
+    private BillingService billingService;
 
-    private RedisTemplate<String, Object> redisTemplate;
-
-    public BillingRedisRepository(RedisTemplate redisTemplate) {
-        this.redisTemplate = redisTemplate;
+    @Cacheable(value = "subscription", key = "#userName")
+    public UserSubscriptions findByUserName(String userName) {
+        logger.info("find user subscription from killbill : " + userName);
+        return billingService.getUserSubscriptions(userName);
     }
 
-    private HashOperations hashOperations;
-
-    private ObjectMapper objectMapper;
-
-    @PostConstruct
-    private void init() {
-
-        hashOperations = redisTemplate.opsForHash();
-        objectMapper = new ObjectMapper();
+    @CachePut(value = "subscription", key = "#userName")
+    @Transactional
+    public UserSubscriptions updateByUserName(String userName) {
+        logger.info("update user subscription cache : " + userName);
+        return billingService.getUserSubscriptions(userName);
     }
 
-    public UserSubscriptions getUserSubscriptions(String userName) {
-        String s = (String) this.hashOperations.get(KEY, userName);
-        if (s == null) {
-            return null;
-        }
-        try {
-            return objectMapper.readValue(s, UserSubscriptions.class);
-        } catch (IOException ex) {
-            return null;
-        }
-    }
-
-    public void saveUserSubscriptions(String userName, UserSubscriptions userSubscriptions) {
-        try {
-            String s = objectMapper.writeValueAsString(userSubscriptions);
-            this.hashOperations.put(KEY, userName, s);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+    @CacheEvict(value = "subscription", key = "#userName")
+    @Transactional
+    public void deleteByUserName(String userName) {
+        logger.info("remove user subscription cache :" + userName);
     }
 
 }

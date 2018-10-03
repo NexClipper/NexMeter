@@ -11,60 +11,35 @@ import java.util.Map;
 
 @Service
 public class BillingService {
-    @Autowired
-    BillingRedisRepository billingRedisRepository;
 
     @Autowired
-    KBApi kbApi;
+    private KBApi kbApi;
 
     @Autowired
-    KBConfig kbConfig;
-
-
-    public void updateUserSubscriptionsByAccountId(String accountId) {
-        Map account = kbApi.getAccountById(accountId);
-        if (account == null) {
-            return;
-        }
-        String userName = account.get("externalKey").toString();
-        UserSubscriptions userSubscriptions = new UserSubscriptions();
-        userSubscriptions.setAccountId(accountId);
-
-        List<UserSubscriptions.Subscription> list = this.getAccountActiveSubscriptions(accountId);
-        userSubscriptions.setSubscriptions(list);
-
-        billingRedisRepository.saveUserSubscriptions(userName, userSubscriptions);
-    }
+    private KBConfig kbConfig;
 
     /**
-     * 유저네임으로 현재 사용자가 구독중인 리스트를 가져온다.
+     * 사용자 아이디로 현재 정상 이용중인 구독 리스트를 반환한다.
      *
      * @param userName
      * @return
      */
-    public UserSubscriptions getUserSubscriptionsByUserName(String userName) {
-        UserSubscriptions userSubscriptions = billingRedisRepository.getUserSubscriptions(userName);
+    public UserSubscriptions getUserSubscriptions(String userName) {
+        UserSubscriptions userSubscriptions = new UserSubscriptions();
+        Map account = kbApi.getAccountByExternalKey(userName);
 
-        if (userSubscriptions == null) {
-            userSubscriptions = new UserSubscriptions();
-            Map account = kbApi.getAccountByExternalKey(userName);
+        //if account exist? get subscriptions by accountId
+        if (account != null) {
+            String accountId = account.get("accountId").toString();
+            userSubscriptions.setAccountId(accountId);
 
-            //if account exist? get subscriptions by accountId
-            if (account != null) {
-                String accountId = account.get("accountId").toString();
-                userSubscriptions.setAccountId(accountId);
-
-                List<UserSubscriptions.Subscription> list = this.getAccountActiveSubscriptions(accountId);
-                userSubscriptions.setSubscriptions(list);
-            }
-            //if account not exist? save empty cache
-            else {
-                userSubscriptions = new UserSubscriptions();
-            }
-            //finally, save userSubscriptions to redis.
-            billingRedisRepository.saveUserSubscriptions(userName, userSubscriptions);
+            List<UserSubscriptions.Subscription> list = this.getAccountActiveSubscriptions(accountId);
+            userSubscriptions.setSubscriptions(list);
         }
-
+        //if account not exist? save empty cache
+        else {
+            userSubscriptions = new UserSubscriptions();
+        }
         return userSubscriptions;
     }
 
@@ -96,5 +71,13 @@ public class BillingService {
             }
             return list;
         }
+    }
+
+    public String getUserNameFromKBAccountId(String accountId) {
+        Map account = kbApi.getAccountById(accountId);
+        if (account == null) {
+            return null;
+        }
+        return account.get("externalKey").toString();
     }
 }
