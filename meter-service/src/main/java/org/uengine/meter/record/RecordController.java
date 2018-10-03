@@ -3,11 +3,10 @@ package org.uengine.meter.record;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.uengine.meter.rule.UnitInternalService;
-import org.uengine.meter.rule.UnitRepository;
+import org.springframework.web.bind.annotation.*;
+import org.uengine.meter.record.kafka.RecordMessage;
+import org.uengine.meter.record.kafka.RecordProcessor;
+import org.uengine.meter.rule.UnitRedisRepository;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,18 +16,22 @@ import javax.servlet.http.HttpServletResponse;
 public class RecordController {
 
     @Autowired
-    private UnitRepository unitRepository;
+    private RecordProcessor recordProcessor;
 
     @Autowired
-    private UnitInternalService unitInternalService;
+    private UnitRedisRepository unitInternalService;
 
     private final Log logger = LogFactory.getLog(getClass());
 
 
-    @GetMapping(value = "test", produces = "application/json")
-    public Object handle(HttpServletRequest request,
-                         HttpServletResponse response
+    @PostMapping(value = "/json", produces = "application/json")
+    public Object saveJsonRecord(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    @RequestBody String records
     ) throws Exception {
+
+        recordProcessor.sendRecordMessage(new RecordMessage(RecordMessage.RecordMessageType.JSON, records));
+
         //1. insert record.
         //2. send kafka
         //3. receive
@@ -61,6 +64,16 @@ public class RecordController {
         // {guest: amount(83), subscriptionId(1): amount(13), subscriptionId(2): amount(49) }
 
 
+        return null;
+    }
+
+    @PostMapping(value = "/log", produces = "application/json")
+    public Object saveLogRecord(HttpServletRequest request,
+                                   HttpServletResponse response,
+                                   @RequestBody String records
+    ) throws Exception {
+
+        recordProcessor.sendRecordMessage(new RecordMessage(RecordMessage.RecordMessageType.LOG, records));
         return null;
     }
 }

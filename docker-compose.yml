@@ -27,6 +27,14 @@ services:
     environment:
       - KAFKA_ADVERTISED_HOST_NAME=zookeeper
 
+  db:
+    image: killbill/mariadb:0.20
+    volumes:
+      - /Users/uengine/docker/killbill:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=killbill
 #  counter-service:
 #    depends_on:
 #      - eureka

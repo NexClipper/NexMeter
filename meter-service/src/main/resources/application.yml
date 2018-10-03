@@ -28,8 +28,17 @@ spring:
           destination: kb
         kb-producer:
           destination: kb
+        record-consumer:
+          group: meter-service
+          destination: record
+        record-producer:
+          destination: record
   redis-host: 127.0.0.1:6379
-
+  influxdb:
+    url: http://localhost:8086
+    username: admin
+    password: password
+    database: meter
   jpa:
     hibernate:
       ddl-auto: update

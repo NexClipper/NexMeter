@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class UnitInternalService {
+public class UnitRedisRepository {
 
     private final Log logger = LogFactory.getLog(getClass());
 

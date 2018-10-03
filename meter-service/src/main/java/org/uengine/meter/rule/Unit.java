@@ -5,17 +5,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.http.util.Asserts;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.Assert;
 import org.uengine.meter.Application;
 
 import javax.persistence.*;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "meter_unit")
@@ -59,13 +54,13 @@ public class Unit {
     @PostUpdate
     @PostPersist
     public void updateCache() {
-        final UnitInternalService internalService = Application.getApplicationContext().getBean(UnitInternalService.class);
+        final UnitRedisRepository internalService = Application.getApplicationContext().getBean(UnitRedisRepository.class);
         internalService.save(this);
     }
 
     @PostRemove
     public void deleteCache() {
-        final UnitInternalService internalService = Application.getApplicationContext().getBean(UnitInternalService.class);
+        final UnitRedisRepository internalService = Application.getApplicationContext().getBean(UnitRedisRepository.class);
         internalService.deleteByName(this.getName());
     }
 
@@ -110,24 +105,14 @@ public class Unit {
         if (Rule.CountingMethod.AVG.equals(rule.getCountingMethod()) ||
                 Rule.CountingMethod.PEAK.equals(rule.getCountingMethod())) {
 
+            //case1: If FreePeriod exist, FreePeriod should equals PeriodSplitting
+            final boolean fault_case1 = rule.getFreePeriod() != null &&
+                    !rule.getFreePeriod().toString().equals(rule.getPeriodSplitting().toString());
+            Assert.isTrue(!fault_case1, "freePeriod: If FreePeriod exist, FreePeriod should equals PeriodSplitting");
 
-            //case1: When PeriodSplitting is Day, FreePeriod should Day or SUBSCRIPTION_CYCLE
-            final boolean fault_case1 = Rule.PeriodSplitting.DAY.equals(rule.getPeriodSplitting())
-                    && Rule.FreePeriod.HOUR.equals(rule.getFreePeriod());
-
-            Assert.isTrue(!fault_case1, "freePeriod: When PeriodSplitting is Day, FreePeriod should Day or SUBSCRIPTION_CYCLE");
-
-            //case2: When PeriodSplitting is SUBSCRIPTION_CYCLE, FreePeriod should be SUBSCRIPTION_CYCLE
-            final boolean fault_case2 = Rule.PeriodSplitting.SUBSCRIPTION_CYCLE.equals(rule.getPeriodSplitting())
-                    && !Rule.FreePeriod.SUBSCRIPTION_CYCLE.equals(rule.getFreePeriod());
-
-            Assert.isTrue(!fault_case2, "freePeriod: When PeriodSplitting is SUBSCRIPTION_CYCLE, FreePeriod should be SUBSCRIPTION_CYCLE");
-
-            //case3: When countingMethod is AVG or PEAK, limitRefreshInterval should be null. An over-limit warning is issued immediately.
+            //case2: When countingMethod is AVG or PEAK, limitRefreshInterval should be null. An over-limit warning is issued immediately.
             Assert.isNull(rule.getLimitRefreshInterval(), "limitRefreshInterval: When countingMethod is AVG or PEAK, limitRefreshInterval should be null. An over-limit warning is issued immediately.");
-
         }
-
         return true;
     }
 
