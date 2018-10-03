@@ -2,7 +2,7 @@
 
 <img src="logo_bright.png" width="150px">
 
-# Nex Meter <small>1.0</small>
+# uEngine Meter <small>1.0</small>
 
 > Subscription usage metering open source.
 
