@@ -19,9 +19,9 @@ public class RecordInfluxRepository {
                 .addField("amount", record.getAmount())
                 .addField("user", record.getUser())
                 .addField("unit", record.getUnit())
-                .addField("basePlan", record.getBasePlan())
-                .addField("addonPlan", record.getAddonPlan())
-                .addField("subscriptionId", record.getSubscriptionId())
+                .addField("basePlan", record.getBasePlan() == null ? "" : record.getBasePlan())
+                .addField("addonPlan", record.getAddonPlan() == null ? "" : record.getAddonPlan())
+                .addField("subscriptionId", record.getSubscriptionId() == null ? "" : record.getSubscriptionId())
                 .build();
         influxDBTemplate.write(point);
         return record;

@@ -32,19 +32,24 @@ public class RecordController {
 
     //7. if unit rule exist and (user null or user do not have match subscription)
     // -> find default rule which apply-plan false.
-    // -> if exist, save recode. (limit save, too)
+    // -> if exist, save recode. (limit save, only user exist)
 
     //8. if unit rule exist and user has match subscription
-    // -> as rule, as subscription id, save recode. (limit save, too)
+    // -> as rule, as subscription id, save recode. (limit save, only user exist)
+
 
     //limit process as follow:
     //limit-refresh-interval:
 
 
-    //if user changed plan during subscription cycle, in same unit, other rule cloud applied.
+    //if user changed plan during subscription cycle, in same unit, other rule should applied.
     //user / unit / time / amount / null              / default(true) /
     //user / unit / time / amount / subscriptionId(1) / default(false) / base-plan
     //user / unit / time / amount / subscriptionId(2) / default(false) / base-plan / addon-plan
+
+    //dashboard:
+    //user:
+    // - per unit, y: amount x: time lines: null
 
     //when calculate time,
     //output (unit, user, period)
@@ -53,6 +58,7 @@ public class RecordController {
     // -> per rule,(include default rule) calculate.
     // -> result as follow:
     // {guest: amount(83), subscriptionId(1): amount(13), subscriptionId(2): amount(49) }
+
 
 
     //UI

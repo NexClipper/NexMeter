@@ -95,8 +95,9 @@ public class Unit {
             Assert.notNull(rule.getBasePlan(), "basePlan: mustn't be null, cause it applied to plan");
         }
 
-        //FreePeriod need FreeAmount
+        //FreePeriod need FreeAmount both
         Assert.isTrue(!(rule.getFreeAmount() == null && rule.getFreePeriod() != null), "freeAmount: FreePeriod need FreeAmount");
+        Assert.isTrue(!(rule.getFreePeriod() == null && rule.getFreeAmount() != null), "freePeriod: FreeAmount need FreePeriod");
 
         //LimitRefreshInterval need LimitAmount
         Assert.isTrue(!(rule.getLimitAmount() == null && rule.getLimitRefreshInterval() != null), "limitAmount: LimitRefreshInterval need LimitAmount");

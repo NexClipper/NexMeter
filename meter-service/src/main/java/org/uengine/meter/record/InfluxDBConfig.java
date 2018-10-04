@@ -1,4 +1,4 @@
-package org.uengine.meter.influxdb;
+package org.uengine.meter.record;
 
 import lombok.Data;
 import org.influxdb.BatchOptions;
@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "spring.influxdb")
 @Data
-public class InfluxConfig {
+public class InfluxDBConfig {
 
     private String url;
     private String username;

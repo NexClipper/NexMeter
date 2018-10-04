@@ -95,6 +95,9 @@ public class Record {
 
         //if unit rule empty, end
         final Unit unitRule = unitRedisRepository.findByName(this.unit);
+        if (unitRule == null) {
+            return this;
+        }
         final List<Unit.Rule> rules = unitRule.getRules();
         if (rules.isEmpty()) {
             return this;
@@ -151,13 +154,13 @@ public class Record {
             }
         }
 
-        //both cases, should find default rule.
-        //1.user defined, but associatedRule is not exist.
-        //2.user is not found.
-        for (Unit.Rule rule : rules) {
-            if (!rule.isApplyPlan()) {
-                associatedRule = rule;
-                break;
+        //if associatedRule not found, set default rule.
+        if (associatedRule == null) {
+            for (Unit.Rule rule : rules) {
+                if (!rule.isApplyPlan()) {
+                    associatedRule = rule;
+                    break;
+                }
             }
         }
 

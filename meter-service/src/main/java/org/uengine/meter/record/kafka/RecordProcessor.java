@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
 import org.uengine.meter.billing.BillingController;
 import org.uengine.meter.billing.BillingService;
+import org.uengine.meter.limit.LimiterService;
 import org.uengine.meter.record.Record;
 import org.uengine.meter.record.RecordInfluxRepository;
 import org.uengine.meter.rule.Unit;
@@ -51,6 +52,9 @@ public class RecordProcessor {
     @Autowired
     private RecordInfluxRepository recordInfluxRepository;
 
+    @Autowired
+    private LimiterService limiterService;
+
     private RecordStreams recordStreams;
 
     public RecordProcessor(RecordStreams recordStreams) {
@@ -64,7 +68,7 @@ public class RecordProcessor {
             final String message = objectMapper.writeValueAsString(recordMessage);
 
             String decode = URLDecoder.decode(message, "utf-8");
-            logger.info("Sending recordMessage : " + decode);
+            //logger.info("Sending recordMessage : " + decode);
 
             MessageChannel messageChannel = recordStreams.producer();
             messageChannel.send(MessageBuilder
@@ -83,7 +87,7 @@ public class RecordProcessor {
                 .subscribeOn(Schedulers.parallel())
                 .subscribe(value -> {
                     try {
-                        logger.info("receive recordMessage : " + value);
+                        //logger.info("receive recordMessage : " + value);
                         final RecordMessage recordMessage = objectMapper.readValue(value, RecordMessage.class);
 
                         //if log type
@@ -94,10 +98,7 @@ public class RecordProcessor {
                                     .map(line -> new Record(line))
                                     .filter(record -> record.valid())
                                     .map(record -> recordInfluxRepository.write(record))
-                                    .map(record -> {
-                                        //TODO limit proccess.
-                                        return record;
-                                    })
+                                    .map(record -> limiterService.consume(record))
                                     .count();
                         }
                         //if json type
@@ -108,6 +109,7 @@ public class RecordProcessor {
                                     .map(record -> record.completeDomain())
                                     .filter(record -> record.valid())
                                     .map(record -> recordInfluxRepository.write(record))
+                                    .map(record -> limiterService.consume(record))
                                     .count();
                         }
                         logger.info(count + " record processed");

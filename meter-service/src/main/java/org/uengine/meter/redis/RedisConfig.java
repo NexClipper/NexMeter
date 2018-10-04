@@ -42,6 +42,7 @@ public class RedisConfig {
     public RedisTemplate<String, Object> redisTemplate() {
         RedisTemplate<String, Object> template = new RedisTemplate<String, Object>();
         template.setConnectionFactory(jedisConnectionFactory());
+        template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return template;
     }
@@ -50,6 +51,7 @@ public class RedisConfig {
     public StringRedisTemplate stringRedisTemplate() {
         StringRedisTemplate template = new StringRedisTemplate();
         template.setConnectionFactory(jedisConnectionFactory());
+        template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new StringRedisSerializer());
         return template;
     }
@@ -60,7 +62,7 @@ public class RedisConfig {
 
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
-                //.disableCachingNullValues();
+        //.disableCachingNullValues();
 
         return RedisCacheManager.builder(jedisConnectionFactory)
                 .cacheDefaults(config)
