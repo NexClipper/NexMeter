@@ -24,7 +24,7 @@ public class BillingService {
      * @param userName
      * @return
      */
-    public UserSubscriptions getUserSubscriptions(String userName) {
+    public UserSubscriptions getUserSubscriptions(String userName, boolean isActive) {
         UserSubscriptions userSubscriptions = new UserSubscriptions();
         Map account = kbApi.getAccountByExternalKey(userName);
 
@@ -33,7 +33,7 @@ public class BillingService {
             String accountId = account.get("accountId").toString();
             userSubscriptions.setAccountId(accountId);
 
-            List<UserSubscriptions.Subscription> list = this.getAccountActiveSubscriptions(accountId);
+            List<UserSubscriptions.Subscription> list = this.getAccountSubscriptions(accountId, isActive);
             userSubscriptions.setSubscriptions(list);
         }
         //if account not exist? save empty cache
@@ -49,7 +49,7 @@ public class BillingService {
      * @param accountId
      * @return
      */
-    public List<UserSubscriptions.Subscription> getAccountActiveSubscriptions(String accountId) {
+    private List<UserSubscriptions.Subscription> getAccountSubscriptions(String accountId, boolean isActive) {
         List<Map> bundles = kbApi.getAccountBundles(accountId);
         if (bundles == null) {
             return new ArrayList<>();
@@ -59,12 +59,17 @@ public class BillingService {
                 Map bundle = bundles.get(i);
                 List<Map> subscriptions = (List<Map>) bundle.get("subscriptions");
                 for (Map subscription : subscriptions) {
-                    if ("ACTIVE".equals(subscription.get("state"))) {
-                        UserSubscriptions.Subscription record = new UserSubscriptions.Subscription();
-                        record.setId(subscription.get("subscriptionId").toString());
-                        record.setPlan(subscription.get("planName").toString());
-                        record.setProduct(subscription.get("productName").toString());
-                        record.setCategory(subscription.get("productCategory").toString());
+                    UserSubscriptions.Subscription record = new UserSubscriptions.Subscription();
+                    record.setId(subscription.get("subscriptionId").toString());
+                    record.setPlan(subscription.get("planName").toString());
+                    record.setProduct(subscription.get("productName").toString());
+                    record.setCategory(subscription.get("productCategory").toString());
+
+                    if (isActive) {
+                        if ("ACTIVE".equals(subscription.get("state"))) {
+                            list.add(record);
+                        }
+                    } else {
                         list.add(record);
                     }
                 }

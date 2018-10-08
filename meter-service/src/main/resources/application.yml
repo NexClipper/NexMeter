@@ -16,24 +16,30 @@ spring:
     stream:
       kafka:
         binder:
+          #brokers: 52.79.164.208:9092
           brokers: 127.0.0.1:9092
       bindings:
-        meter-consumer:
-          group: meter-service
-          destination: meter
-        meter-producer:
-          destination: meter
         kb-consumer:
           group: meter-service
           destination: kb
         kb-producer:
           destination: kb
+        limit-consumer:
+          group: meter-service
+          destination: meter-limit
+        limit-producer:
+          destination: meter-limit
         record-consumer:
           group: meter-service
-          destination: record
+          destination: meter-record
         record-producer:
-          destination: record
+          destination: meter-record
+
+
+
+
   redis-host: 127.0.0.1:6379
+  #redis-host: redis.pas-mini.io:6379
   influxdb:
     url: http://localhost:8086
     username: admin
@@ -55,8 +61,8 @@ killbill:
   url: http://localhost:18080
   username: admin
   password: password
-  api-key: bob2
-  api-secret: lazar
+  api-key: admin
+  api-secret: password
 
 ---
 spring:

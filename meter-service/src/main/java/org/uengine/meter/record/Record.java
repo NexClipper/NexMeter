@@ -53,6 +53,9 @@ public class Record {
     @JsonIgnore
     private Unit.Rule rule;
 
+    public Record() {
+    }
+
     public Record(String log) {
         //get patterns from redis.
         final GrokRedisRepository grokRedisRepository = Application.getApplicationContext().getBean(GrokRedisRepository.class);

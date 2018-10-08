@@ -98,7 +98,7 @@ public class RecordProcessor {
                                     .map(line -> new Record(line))
                                     .filter(record -> record.valid())
                                     .map(record -> recordInfluxRepository.write(record))
-                                    .map(record -> limiterService.consume(record))
+                                    .map(record -> limiterService.consume(record, false))
                                     .count();
                         }
                         //if json type
@@ -109,7 +109,7 @@ public class RecordProcessor {
                                     .map(record -> record.completeDomain())
                                     .filter(record -> record.valid())
                                     .map(record -> recordInfluxRepository.write(record))
-                                    .map(record -> limiterService.consume(record))
+                                    .map(record -> limiterService.consume(record, false))
                                     .count();
                         }
                         logger.info(count + " record processed");

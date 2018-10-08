@@ -16,14 +16,18 @@
 
 package org.uengine.meter.limit;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
+import org.uengine.meter.limit.kafka.LimitProcessor;
 import org.uengine.meter.record.Record;
 import org.uengine.meter.rule.Unit;
+
+import java.util.Date;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -34,82 +38,200 @@ public class LimiterService {
     @Autowired
     private RedisTemplate redisTemplate;
 
-    public Limiter consume(Record record) {
+    @Autowired
+    private LimitProcessor limitProcessor;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    //for just check limit. -> consume as usage 0
+
+    public Limiter getLimiter(String user, String unit) {
+        final Record record = new Record();
+        record.setUser(user);
+        record.setUnit(unit);
+        record.completeDomain();
+        record.setAmount(0L);
+        return this.consume(record, true);
+    }
+
+    public Limiter updateCurrentLimitAmount(String user, String unit, Long amount) {
+        final Record record = new Record();
+        record.setUser(user);
+        record.setUnit(unit);
+        record.completeDomain();
+        if (record.getRule() != null) {
+            final String count_key = this.getKey(record.getUnit(), record.getUser());
+            final Unit.Rule.CountingMethod countingMethod = record.getRule().getCountingMethod();
+            if (Unit.Rule.CountingMethod.SUM.equals(countingMethod)) {
+                //reset current amount
+                this.redisTemplate.boundValueOps(count_key).set(amount);
+            }
+        }
+
+        return this.getLimiter(user, unit);
+    }
+
+
+    public void saveHistory(Record record, Long current, Long limitAmount, Long interval) {
+        final LimitHistory limitHistory = new LimitHistory();
+        limitHistory.setUser(record.getUser());
+        limitHistory.setUnit(record.getUnit());
+        limitHistory.setCurrent(current);
+        limitHistory.setLimitAmount(limitAmount);
+        limitHistory.setRefreshInterval(interval);
+        limitHistory.setBasePlan(record.getBasePlan());
+        limitHistory.setAddonPlan(record.getAddonPlan());
+        limitHistory.setSubscriptionId(record.getSubscriptionId());
+        limitHistory.setTime(new Date().getTime());
+
+        try {
+            limitProcessor.sendLimitMessage(objectMapper.writeValueAsString(limitHistory));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private String getKey(String unit, String user) {
+        return "count::" + unit + "::" + user;
+    }
+
+    public Limiter consume(Record record, boolean lookup) {
+        Limiter limiter = new Limiter();
+        limiter.setUnit(record.getUnit());
+        limiter.setUser(record.getUser());
+        limiter.setRemaining(0L);
+        limiter.setReset(0L);
 
         //user required
         if ("anonymous".equals(record.getUser())) {
-            return null;
+            return limiter;
+        }
+
+        //unit required
+        if (record.getUnit() == null) {
+            return limiter;
         }
 
         //key for limit
-        final String key = "limit:" + record.getUnit() + ":" + record.getUser();
+        final String count_key = this.getKey(record.getUnit(), record.getUser());
 
         //rule required
         final Unit.Rule rule = record.getRule();
         if (rule == null) {
-            return null;
+            return limiter;
         }
+
+        //limitRefreshInterval
         final Unit.Rule.LimitRefreshInterval limitRefreshInterval = rule.getLimitRefreshInterval();
 
         //limitAmount
         final Long limitAmount = rule.getLimitAmount();
 
-        //limitRefreshInterval, limitAmount required
-        if (limitRefreshInterval == null || limitAmount == null) {
-            return null;
+        //if sum
+        if (Unit.Rule.CountingMethod.SUM.equals(rule.getCountingMethod())) {
+            //limitRefreshInterval, limitAmount required
+            if (limitRefreshInterval == null || limitAmount == null) {
+                return limiter;
+            }
+
+            //usage
+            Long usage = record.getAmount();
+
+            //refreshInterval
+            Long refreshInterval = null;
+
+
+            if (Unit.Rule.LimitRefreshInterval.HOUR.equals(limitRefreshInterval)) {
+                //3600 sec.
+                refreshInterval = 3600L;
+            } else if (Unit.Rule.LimitRefreshInterval.DAY.equals(limitRefreshInterval)) {
+                //3600 sec * 24hour
+                refreshInterval = 24L * 3600L;
+            }
+
+            //lookup
+            if (lookup) {
+                //set usage 0
+                usage = 0L;
+
+                calcRemainingLimit(limitAmount, usage, refreshInterval, count_key, rule.getCountingMethod(), limiter);
+                return limiter;
+            }
+            //perform
+            else {
+                calcRemainingLimit(limitAmount, usage, refreshInterval, count_key, rule.getCountingMethod(), limiter);
+                if (limiter.getRemaining() <= 0) {
+                    //save limit 이력
+                    this.saveHistory(record, limiter.getCurrent(), limitAmount, refreshInterval);
+                }
+                return limiter;
+            }
         }
+        //if avg or peak
+        else {
+            //limitAmount required
+            if (limitAmount == null) {
+                return limiter;
+            }
+            //usage
+            final Long usage = record.getAmount();
 
-        //usage
-        final Long usage = record.getAmount();
-
-        //refreshInterval
-        Long refreshInterval = null;
-        if (Unit.Rule.LimitRefreshInterval.HOUR.equals(limitRefreshInterval)) {
-            //3600 sec.
-            refreshInterval = 3600L;
-        } else if (Unit.Rule.LimitRefreshInterval.DAY.equals(limitRefreshInterval)) {
-            //3600 sec * 24hour
-            refreshInterval = 24L * 3600L;
-        } else if (Unit.Rule.LimitRefreshInterval.SUBSCRIPTION_CYCLE.equals(limitRefreshInterval)
-                || Unit.Rule.LimitRefreshInterval.MANUALY.equals(limitRefreshInterval)) {
-            //3600 sec * 24hour * unlimited(Max 360 Day)
-            //SUBSCRIPTION_CYCLE = refresh when invoice created.
-            //MANUALY = refresh when api is executed.
-            refreshInterval = 24L * 3600L * 360L;
+            //lookup
+            if (lookup) {
+                Long current = 0L;
+                final Object o = this.redisTemplate.boundValueOps(count_key).get();
+                if (o != null) {
+                    current = new Long((Integer) o);
+                }
+                limiter.setCurrent(current);
+                limiter.setRemaining(Math.max(-1, limitAmount - current));
+                return limiter;
+            }
+            //perform
+            else {
+                calcRemainingLimit(limitAmount, usage, null, count_key, rule.getCountingMethod(), limiter);
+                if (limiter.getRemaining() <= 0) {
+                    //save limit 이력
+                    this.saveHistory(record, limiter.getCurrent(), limitAmount, null);
+                }
+                return limiter;
+            }
         }
-
-        final Limiter limiter = new Limiter(key, null, null, null);
-
-        calcRemainingLimit(limitAmount, usage, refreshInterval, key, limiter);
-
-        return limiter;
     }
 
     private synchronized void calcRemainingLimit(
             Long limit,
             Long usage,
             Long refreshInterval,
-            String key,
+            String count_key,
+            Unit.Rule.CountingMethod countingMethod,
             Limiter limiter) {
         if (limit != null) {
-            handleExpiration(key, refreshInterval, limiter);
+            //if sum, add recent usage
+            if (Unit.Rule.CountingMethod.SUM.equals(countingMethod)) {
+                handleExpiration(count_key, refreshInterval, limiter);
 
-            Long current = 0L;
+                Long current = 0L;
 
-            try {
-                current = this.redisTemplate.boundValueOps(key).increment(usage);
-            } catch (RuntimeException e) {
-                String msg = "Failed retrieving rate for " + key + ", will return limit";
-                this.handleError(msg, e);
+                try {
+                    current = this.redisTemplate.boundValueOps(count_key).increment(usage);
+                } catch (RuntimeException e) {
+                    String msg = "Failed retrieving rate for " + count_key + ", will return limit";
+                    this.handleError(msg, e);
+                }
+
+                //남은 값은 최소 -1
+                limiter.setCurrent(current);
+                limiter.setRemaining(Math.max(-1, limit - current));
             }
-
-            //남은 값은 최소 -1
-            limiter.setRemaining(Math.max(-1, limit - current));
+            //if avg or peak, save current usage
+            else {
+                this.redisTemplate.boundValueOps(count_key).set(usage);
+                limiter.setCurrent(usage);
+                limiter.setRemaining(Math.max(-1, limit - usage));
+            }
         }
-    }
-
-    private synchronized void removeExpiration(String key) {
-        this.redisTemplate.expire(key, 0, SECONDS);
     }
 
     private synchronized void handleExpiration(String key, Long refreshInterval, Limiter limiter) {
@@ -120,7 +242,7 @@ public class LimiterService {
         Long expire = null;
         try {
             expire = this.redisTemplate.getExpire(key);
-            if (expire == null || expire == -1) {
+            if (expire == null || expire <= -1) {
 
                 this.redisTemplate.expire(key, refreshInterval, SECONDS);
                 expire = refreshInterval;

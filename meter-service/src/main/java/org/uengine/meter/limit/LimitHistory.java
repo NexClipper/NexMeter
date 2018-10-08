@@ -20,14 +20,24 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "meter_limit_history")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Limiter {
+public class LimitHistory {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
     private String user;
     private String unit;
+    private Long time;
     private Long current;
-    private Long remaining;
-    private Long reset;
+    private Long limitAmount;
+    private Long refreshInterval;
+    private String basePlan;
+    private String addonPlan;
+    private String subscriptionId;
 }

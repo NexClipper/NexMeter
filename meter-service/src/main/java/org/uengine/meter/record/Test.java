@@ -80,18 +80,18 @@ public class Test {
 //                .addField("used", 80L)
 //                .addField("free", 1L)
 //                .build());
-
-        Query query = new Query("SELECT * FROM record", dbName);
-
-        influxDB.query(query, queryResult -> {
-            // Do something with the result...
-            for (QueryResult.Result result : queryResult.getResults()) {
-                System.out.println(result.toString());
-            }
-
-        }, throwable -> {
-            // Do something with the error...
-        });
+//
+//        Query query = new Query("SELECT * FROM record", dbName);
+//
+//        influxDB.query(query, queryResult -> {
+//            // Do something with the result...
+//            for (QueryResult.Result result : queryResult.getResults()) {
+//                System.out.println(result.toString());
+//            }
+//
+//        }, throwable -> {
+//            // Do something with the error...
+//        });
 //
 ////        final QueryResult result = influxDB.query(query);
 ////        final List<QueryResult.Result> results = result.getResults();
@@ -100,6 +100,8 @@ public class Test {
 ////        }
 //
 //        influxDB.close();
+        final long time = new Date().getTime();
+        System.out.println(time);
 
     }
 }

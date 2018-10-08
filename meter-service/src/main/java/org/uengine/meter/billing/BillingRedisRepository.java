@@ -32,14 +32,14 @@ public class BillingRedisRepository {
     @Cacheable(value = "subscription", key = "#userName")
     public UserSubscriptions findByUserName(String userName) {
         logger.info("find user subscription from killbill : " + userName);
-        return billingService.getUserSubscriptions(userName);
+        return billingService.getUserSubscriptions(userName, true);
     }
 
     @CachePut(value = "subscription", key = "#userName")
     @Transactional
     public UserSubscriptions updateByUserName(String userName) {
         logger.info("update user subscription cache : " + userName);
-        return billingService.getUserSubscriptions(userName);
+        return billingService.getUserSubscriptions(userName, true);
     }
 
     @CacheEvict(value = "subscription", key = "#userName")

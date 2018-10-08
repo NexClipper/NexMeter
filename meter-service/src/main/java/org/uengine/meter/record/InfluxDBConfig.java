@@ -26,7 +26,7 @@ public class InfluxDBConfig {
 
         //recreate retentionPolicy
         String rpName = "meterRetentionPolicy";
-        influxDB.dropRetentionPolicy(rpName, database);
+        //influxDB.dropRetentionPolicy(rpName, database);
         influxDB.createRetentionPolicy(rpName, database, "180d", 1, true);
         influxDB.setRetentionPolicy(rpName);
 

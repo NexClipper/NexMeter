@@ -88,7 +88,6 @@ public class Unit {
 
     private boolean validateRule(Rule rule) {
         Assert.notNull(rule.getCountingMethod(), "countingMethod: mustn't be null");
-        Assert.notNull(rule.getPeriodSplitting(), "periodSplitting: mustn't be null");
 
         //When applyPlan true, basePlan required
         if (rule.isApplyPlan()) {
@@ -99,21 +98,31 @@ public class Unit {
         Assert.isTrue(!(rule.getFreeAmount() == null && rule.getFreePeriod() != null), "freeAmount: FreePeriod need FreeAmount");
         Assert.isTrue(!(rule.getFreePeriod() == null && rule.getFreeAmount() != null), "freePeriod: FreeAmount need FreePeriod");
 
-        //LimitRefreshInterval need LimitAmount
-        Assert.isTrue(!(rule.getLimitAmount() == null && rule.getLimitRefreshInterval() != null), "limitAmount: LimitRefreshInterval need LimitAmount");
-
         //Case countingMethod avg or peak
         if (Rule.CountingMethod.AVG.equals(rule.getCountingMethod()) ||
                 Rule.CountingMethod.PEAK.equals(rule.getCountingMethod())) {
 
-            //case1: If FreePeriod exist, FreePeriod should equals PeriodSplitting
+            //case1: periodSplitting mustn't be null
+            Assert.notNull(rule.getPeriodSplitting(), "periodSplitting: mustn't be null");
+
+            //case2: If FreePeriod exist, FreePeriod should equals PeriodSplitting
             final boolean fault_case1 = rule.getFreePeriod() != null &&
                     !rule.getFreePeriod().toString().equals(rule.getPeriodSplitting().toString());
             Assert.isTrue(!fault_case1, "freePeriod: If FreePeriod exist, FreePeriod should equals PeriodSplitting");
 
-            //case2: When countingMethod is AVG or PEAK, limitRefreshInterval should be null. An over-limit warning is issued immediately.
+            //case3: When countingMethod is AVG or PEAK, limitRefreshInterval should be null. An over-limit warning is issued immediately.
             Assert.isNull(rule.getLimitRefreshInterval(), "limitRefreshInterval: When countingMethod is AVG or PEAK, limitRefreshInterval should be null. An over-limit warning is issued immediately.");
         }
+
+        //Case countingMethod sum
+        if (Rule.CountingMethod.SUM.equals(rule.getCountingMethod())) {
+            //case1: periodSplitting must be null
+            Assert.isTrue(rule.getPeriodSplitting() == null, "periodSplitting: must be null");
+
+            //case2: if limitAmount exist, LimitRefreshInterval mustn't be null
+            Assert.isTrue(!(rule.getLimitAmount() != null && rule.getLimitRefreshInterval() == null), "limitRefreshInterval: If limitAmount exist, limitRefreshInterval mustn't be null");
+        }
+
         return true;
     }
 
@@ -135,15 +144,15 @@ public class Unit {
         }
 
         public static enum PeriodSplitting {
-            HOUR, DAY, SUBSCRIPTION_CYCLE
+            HOUR, DAY
         }
 
         public static enum LimitRefreshInterval {
-            HOUR, DAY, SUBSCRIPTION_CYCLE, MANUALY
+            HOUR, DAY
         }
 
         public static enum FreePeriod {
-            HOUR, DAY, SUBSCRIPTION_CYCLE
+            HOUR, DAY
         }
     }
 }
