@@ -64,9 +64,15 @@ public class RecordController {
     //user:
     //  - unit: disk
     //    usages:
+    //     - rule: rule
     //     - subscriptionId:
-    //     - data: [
-    //          {time: ,amount: }
+    //     - series: [
+    //          [time, amount]
+    //       ]
+    //     - amount-per-hour: [
+    //          {
+    //              time:
+    //          }
     //       ]
 
     //output for calculate.
@@ -99,19 +105,11 @@ public class RecordController {
     // {guest: amount(83), subscriptionId(1): amount(13), subscriptionId(2): amount(49) }
 
 
-    //인플럭스 db 데이터 조회 법.
-    //tag list 를 마련하지 말고, where = ? 로 모두 해결. 그러기 위해서는, 고객 별 subscription 리스트,unit 리스트가 필요.
-    //그걸로 동시 쿼리를 진행시켜 stream 으로 묶어야 한다.
-
-
+    //TODO
     //UI
-
     //billing hosted page
-
     //paypal express checkout test
-
     //user sync
-
     //docker
 
     @PostMapping(value = "/json", produces = "application/json")
@@ -151,7 +149,7 @@ public class RecordController {
                          @RequestParam(value = "division", defaultValue = "1h") String division
     ) throws Exception {
 
-        recordService.getSeries(unit, user, start, end, division);
+        return recordService.getSeries(unit, user, start, end, division);
 
         //사용자의 subscription id 리스트를 구함.
         //subscription id + unit 으로 각각 쿼리함.
@@ -173,7 +171,7 @@ public class RecordController {
         //일일 시리즈에서 제함.
 
         //callable 로 여러 시리즈를 동시 쿼리하도록 함.
-        return null;
+
     }
 
     /**
