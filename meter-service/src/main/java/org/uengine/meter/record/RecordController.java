@@ -3,6 +3,7 @@ package org.uengine.meter.record;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import org.uengine.meter.record.kafka.RecordMessage;
 import org.uengine.meter.record.kafka.RecordProcessor;
@@ -10,6 +11,7 @@ import org.uengine.meter.rule.UnitRedisRepository;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 
 @RestController
 @RequestMapping("/record")
@@ -20,6 +22,9 @@ public class RecordController {
 
     @Autowired
     private UnitRedisRepository unitInternalService;
+
+    @Autowired
+    private RecordService recordService;
 
     private final Log logger = LogFactory.getLog(getClass());
 
@@ -140,12 +145,13 @@ public class RecordController {
     public Object series(HttpServletRequest request,
                          HttpServletResponse response,
                          @RequestParam(value = "unit", required = false) String unit,
-                         @RequestParam(value = "user") String user,
-                         @RequestParam(value = "start") String start,
-                         @RequestParam(value = "end") String end,
+                         @RequestParam(value = "user", required = false) String user,
+                         @RequestParam(value = "start") @DateTimeFormat(pattern = "yyyy-MM-dd") Date start,
+                         @RequestParam(value = "end") @DateTimeFormat(pattern = "yyyy-MM-dd") Date end,
                          @RequestParam(value = "division", defaultValue = "1h") String division
     ) throws Exception {
 
+        recordService.getSeries(unit, user, start, end, division);
 
         //사용자의 subscription id 리스트를 구함.
         //subscription id + unit 으로 각각 쿼리함.

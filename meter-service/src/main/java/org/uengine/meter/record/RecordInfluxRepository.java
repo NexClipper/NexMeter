@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.uengine.meter.rule.Unit;
 
+import java.util.Date;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
@@ -23,7 +24,7 @@ public class RecordInfluxRepository {
         Point point = Point.measurement("record")
                 .time(record.getTime(), TimeUnit.MILLISECONDS)
                 .addField("amount", record.getAmount())
-                .addField("user", record.getUser())
+                .addField("username", record.getUser())
                 .addField("unit", record.getUnit())
                 .addField("basePlan", record.getBasePlan() == null ? "" : record.getBasePlan())
                 .addField("addonPlan", record.getAddonPlan() == null ? "" : record.getAddonPlan())
@@ -33,13 +34,13 @@ public class RecordInfluxRepository {
         return record;
     }
 
-    public void findByUnitAndUserAndSubscriptionId(
+    public QueryResult.Result findByUnitAndUserAndSubscriptionId(
             Unit.Rule.CountingMethod countingMethod,
             String unit,
             String user,
             String subscriptionId,
-            Long start,
-            Long end,
+            Date start,
+            Date end,
             String division) {
 
         String function = null;
@@ -51,33 +52,32 @@ public class RecordInfluxRepository {
             function = "sum";
         }
 
-        String subId = null;
-        if (subscriptionId == null) {
-            subId = "";
-        } else {
-            subId = subscriptionId;
-        }
-
         final StringJoiner joiner = new StringJoiner(" ");
         joiner
                 .add("select")
                 .add(function + "(\"amount\")")
                 .add("from record where")
-                .add("time < " + end + "ms")
+                .add("time < " + end.getTime() + "ms")
                 .add("and")
-                .add("time > " + start + "ms")
+                .add("time > " + start.getTime() + "ms")
                 .add("and")
-                .add("unit='" + unit + "'")
-                .add("and")
-                .add("user='" + user + "'")
-                .add("and")
-                .add("subscriptionId='" + subId + "'")
+                .add("unit='" + unit + "'");
+        if (user != null) {
+            joiner
+                    .add("and")
+                    .add("username='" + user + "'");
+        }
+        if (subscriptionId != null) {
+            joiner
+                    .add("and")
+                    .add("subscriptionId='" + subscriptionId + "'");
+        }
+        joiner
                 .add("group by time(" + division + ")");
 
         final String query = joiner.toString();
 
         final QueryResult result = influxDBTemplate.query(new Query(query, "meter"));
-
-        System.out.println(123);
+        return result.getResults().get(0);
     }
 }

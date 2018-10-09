@@ -18,6 +18,7 @@ package org.uengine.meter.record;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.influxdb.dto.QueryResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -56,38 +57,52 @@ public class RecordService {
     @Autowired
     private UnitRepository unitRepository;
 
-    public void getSeries(String unit, String user, String division) {
+    public Object getSeries(String unit, String user, Date start, Date end, String division) {
         final Unit unitRule = unitRepository.findByName(unit);
-        for (Unit.Rule rule : unitRule.getRules()) {
-
-        }
 
         //get all subscriptions
         final UserSubscriptions userSubscriptions = billingService.getUserSubscriptions(user, false);
         final List<UserSubscriptions.Subscription> subscriptions = userSubscriptions.getSubscriptions();
-        final ArrayList<String> subscriptionIds = new ArrayList<>();
-        if (subscriptions != null) {
-            for (int i = 0; i < subscriptions.size(); i++) {
-                subscriptionIds.add(subscriptions.get(i).getId());
 
-            }
+        final Map<String, Unit.Rule> ruleMapPerSubscription = unitRule.findRuleMapPerSubscription(subscriptions);
+
+        if (ruleMapPerSubscription.isEmpty()) {
+            return null;
         }
-        //unit 에 subscriptionId 를 투입했을 경우, unit 중 적용된 rule 을 알아야 한다.
-        //unit 에 적용된 rule 은
 
-        //findByUnitAndUserAndSubscriptionId
 
-        //subscriptionIds 가 없는것, 즉 디폴트 룰 카운팅 메소드로 하나.
+        for (Map.Entry<String, Unit.Rule> entry : ruleMapPerSubscription.entrySet()) {
+            String subscriptionId = entry.getKey();
+            final Unit.Rule rule = entry.getValue();
 
-        //subscriptionIds 마다 base,addonPlan 으로, 해당 룰을 찾기.
+            //ruleMapPerSubscription 에서 default key 로 온 것은 디폴트 룰이다.
+            //따라서 subscriptionId 를 빈 값으로 쿼리해야 한다.
+            if ("default".equals(subscriptionId)) {
+                subscriptionId = "";
+            }
 
-        //해당 룰을 바탕으로 카운팅 메소드와 함께 쿼리.
+            //미결제 인원을 뜻하는 anonymous 는 구독 상태가 아닐 때 사용이력을 조회하므로,
+            // subscriptionId 를 빈 값으로 쿼리해야 한다.
+            if ("anonymous".equals(user)) {
+                subscriptionId = "";
+            }
 
-        //전체 대쉬보드에서는...?
+            //사용자가 정의되지 않을 때는 모든 사용자에 대한 default rule 로 검색하는 뜻이므로,
+            //subscriptionId 과 user 모두 쿼리를 하지 말아야 한다.
+            if (user == null) {
+                subscriptionId = null;
+            }
 
-        //쿼리하기 전에, 카운팅 메소드를 알아야 함.
-        //unit 을 알아내야 함.
-
-        //final Map account = kbApi.getAccountByExternalKey(user);
+            final QueryResult.Result result = recordInfluxRepository.findByUnitAndUserAndSubscriptionId(
+                    rule.getCountingMethod(),
+                    unit,
+                    user,
+                    subscriptionId,
+                    start,
+                    end,
+                    division
+            );
+        }
+        return null;
     }
 }

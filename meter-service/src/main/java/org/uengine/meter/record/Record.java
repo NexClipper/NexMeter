@@ -22,6 +22,7 @@ import org.uengine.meter.rule.UnitRedisRepository;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -129,7 +130,7 @@ public class Record {
                 if (!StringUtils.isEmpty(basePlan) && StringUtils.isEmpty(addonPlan)) {
 
                     final UserSubscriptions.Subscription subscription =
-                            this.findMatchSubscription("BASE", basePlan, subscriptions);
+                            Unit.findMatchSubscription("BASE", basePlan, subscriptions);
                     if (subscription != null) {
                         hasAllPlan = true;
                         associatedSubscriptionId = subscription.getId();
@@ -139,9 +140,9 @@ public class Record {
                 //if rule has both basePlan and addonPlan
                 if (!StringUtils.isEmpty(basePlan) && !StringUtils.isEmpty(addonPlan)) {
                     final UserSubscriptions.Subscription baseSubscription =
-                            this.findMatchSubscription("BASE", basePlan, subscriptions);
+                            Unit.findMatchSubscription("BASE", basePlan, subscriptions);
                     final UserSubscriptions.Subscription addonSubscription =
-                            this.findMatchSubscription("ADD_ON", addonPlan, subscriptions);
+                            Unit.findMatchSubscription("ADD_ON", addonPlan, subscriptions);
 
                     if (baseSubscription != null && addonSubscription != null) {
                         hasAllPlan = true;
@@ -178,20 +179,6 @@ public class Record {
         return this;
     }
 
-    //subscription
-    private UserSubscriptions.Subscription findMatchSubscription(String category, String plan, List<UserSubscriptions.Subscription> subscriptions) {
-        if (subscriptions == null || subscriptions.isEmpty()) {
-            return null;
-        }
-        UserSubscriptions.Subscription match = null;
-        for (UserSubscriptions.Subscription subscription : subscriptions) {
-            if (category.equals(subscription.getCategory()) && plan.equals(subscription.getPlan())) {
-                match = subscription;
-            }
-            break;
-        }
-        return match;
-    }
 
     public Record(String pattern, String log) {
         this.match(pattern, log);

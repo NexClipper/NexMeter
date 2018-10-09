@@ -5,12 +5,18 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.context.ApplicationContext;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.uengine.meter.Application;
+import org.uengine.meter.billing.BillingRedisRepository;
+import org.uengine.meter.billing.UserSubscriptions;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @Table(name = "meter_unit")
@@ -49,6 +55,93 @@ public class Unit {
         } catch (Exception ex) {
             return new ArrayList<>();
         }
+    }
+
+    /**
+     * 주어진 구독 리스트에 해당하는 rule 을 매핑하여 반환한다.
+     *
+     * @param subscriptions
+     * @return
+     */
+    public Map<String, Rule> findRuleMapPerSubscription(List<UserSubscriptions.Subscription> subscriptions) {
+        Map<String, Unit.Rule> ruleMap = new HashMap<>();
+
+        //if rule empty, return
+        final List<Rule> rules = this.getRules();
+        if (rules == null || rules.isEmpty()) {
+            return ruleMap;
+        }
+
+        //set defaultRule
+        final Rule defaultRule = this.findDefaultRule();
+        if (defaultRule != null) {
+            ruleMap.put("default", defaultRule);
+        }
+
+        for (Unit.Rule rule : rules) {
+            //only associated plan is target.
+            if (!rule.isApplyPlan()) {
+                //default rule
+                continue;
+            }
+            final String basePlan = rule.getBasePlan();
+            final String addonPlan = rule.getAddonPlan();
+            boolean hasAllPlan = false;
+
+            //if rule has only basePlan
+            if (!StringUtils.isEmpty(basePlan) && StringUtils.isEmpty(addonPlan)) {
+
+                final UserSubscriptions.Subscription subscription =
+                        findMatchSubscription("BASE", basePlan, subscriptions);
+                if (subscription != null) {
+                    ruleMap.put(subscription.getId(), rule);
+                }
+            }
+
+            //if rule has both basePlan and addonPlan
+            if (!StringUtils.isEmpty(basePlan) && !StringUtils.isEmpty(addonPlan)) {
+                final UserSubscriptions.Subscription baseSubscription =
+                        findMatchSubscription("BASE", basePlan, subscriptions);
+                final UserSubscriptions.Subscription addonSubscription =
+                        findMatchSubscription("ADD_ON", addonPlan, subscriptions);
+
+                if (baseSubscription != null && addonSubscription != null) {
+                    ruleMap.put(addonSubscription.getId(), rule);
+                }
+            }
+        }
+
+        return ruleMap;
+    }
+
+    //subscription
+    public static UserSubscriptions.Subscription findMatchSubscription(String category, String plan, List<UserSubscriptions.Subscription> subscriptions) {
+        if (subscriptions == null || subscriptions.isEmpty()) {
+            return null;
+        }
+        UserSubscriptions.Subscription match = null;
+        for (UserSubscriptions.Subscription subscription : subscriptions) {
+            if (category.equals(subscription.getCategory()) && plan.equals(subscription.getPlan())) {
+                match = subscription;
+            }
+            break;
+        }
+        return match;
+    }
+
+    public Rule findDefaultRule() {
+        Rule defaultRule = null;
+        final List<Rule> rules = this.getRules();
+        if (rules != null && !rules.isEmpty()) {
+            for (Rule rule : rules) {
+
+                //Because applyPlan false means default metering rule, it should only one.
+                if (!rule.isApplyPlan()) {
+                    defaultRule = rule;
+                }
+            }
+        }
+        return defaultRule;
     }
 
     @PostUpdate
