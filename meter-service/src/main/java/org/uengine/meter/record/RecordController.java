@@ -4,27 +4,38 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.uengine.meter.billing.BillingService;
+import org.uengine.meter.billing.kb.KBApi;
 import org.uengine.meter.record.kafka.RecordMessage;
 import org.uengine.meter.record.kafka.RecordProcessor;
+import org.uengine.meter.rule.Unit;
 import org.uengine.meter.rule.UnitRedisRepository;
+import org.uengine.meter.rule.UnitRepository;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/record")
+@RequestMapping("/meter/record")
 public class RecordController {
 
     @Autowired
     private RecordProcessor recordProcessor;
 
     @Autowired
-    private UnitRedisRepository unitInternalService;
+    private UnitRepository unitRepository;
 
     @Autowired
     private RecordService recordService;
+
+    @Autowired
+    private BillingService billingService;
 
     private final Log logger = LogFactory.getLog(getClass());
 
@@ -149,8 +160,19 @@ public class RecordController {
                          @RequestParam(value = "division", defaultValue = "1h") String division
     ) throws Exception {
 
-        return recordService.getSeries(unit, user, start, end, division);
-
+        //TODO if unit null, get all unit and perform.
+        if (StringUtils.isEmpty(unit)) {
+            ArrayList<UsageSeries> list = new ArrayList<>();
+            final Iterable<Unit> units = unitRepository.findAll();
+            units.forEach(item -> {
+                final String perUnitName = item.getName();
+                final UsageSeries series = recordService.getSeries(perUnitName, user, start, end, division);
+                list.add(series);
+            });
+            return list;
+        } else {
+            return recordService.getSeries(unit, user, start, end, division);
+        }
         //사용자의 subscription id 리스트를 구함.
         //subscription id + unit 으로 각각 쿼리함.
 
@@ -179,20 +201,32 @@ public class RecordController {
      *
      * @param request
      * @param response
-     * @param user
+     * @param accountId
      * @param start
      * @param end
      * @return
      * @throws Exception
      */
-    @GetMapping(value = "/usageItems", produces = "application/json")
+    @GetMapping(value = "/items", produces = "application/json")
     public Object usageItems(HttpServletRequest request,
                              HttpServletResponse response,
-                             @RequestParam(value = "user") String user,
-                             @RequestParam(value = "start") String start,
-                             @RequestParam(value = "end") String end
+                             @RequestParam(value = "accountId") String accountId,
+                             @RequestParam(value = "start") @DateTimeFormat(pattern = "yyyy-MM-dd") Date start,
+                             @RequestParam(value = "end") @DateTimeFormat(pattern = "yyyy-MM-dd") Date end,
+                             @RequestParam(value = "division", defaultValue = "1h") String division
     ) throws Exception {
 
-        return null;
+        final String user = billingService.getUserNameFromKBAccountId(accountId);
+        ArrayList<Map> list = new ArrayList<>();
+        if (user != null) {
+            final Iterable<Unit> units = unitRepository.findAll();
+            units.forEach(item -> {
+                final String perUnitName = item.getName();
+                final UsageSeries series = recordService.getSeries(perUnitName, user, start, end, division);
+                final List<Map> kbUsageItems = series.applyKBUsageItems(user);
+                list.addAll(kbUsageItems);
+            });
+        }
+        return list;
     }
 }

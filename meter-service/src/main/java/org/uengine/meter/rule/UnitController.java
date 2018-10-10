@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @RestController
-@RequestMapping("/unit")
+@RequestMapping("/meter/unit")
 public class UnitController {
 
     @Autowired

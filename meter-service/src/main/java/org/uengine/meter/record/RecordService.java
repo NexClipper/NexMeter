@@ -44,21 +44,12 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class RecordService {
 
     @Autowired
-    private RedisTemplate redisTemplate;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
     private BillingService billingService;
-
-    @Autowired
-    private RecordInfluxRepository recordInfluxRepository;
 
     @Autowired
     private UnitRepository unitRepository;
 
-    public Object getSeries(String unit, String user, Date start, Date end, String division) {
+    public UsageSeries getSeries(String unit, String user, Date start, Date end, String division) {
         final Unit unitRule = unitRepository.findByName(unit);
 
         //get all subscriptions
@@ -70,8 +61,6 @@ public class RecordService {
         if (ruleMapPerSubscription.isEmpty()) {
             return null;
         }
-
-        //
 
         List<CompletableFuture<UsageSeries.Usage>> list = new ArrayList<>();
 
@@ -127,16 +116,13 @@ public class RecordService {
             for (CompletableFuture<UsageSeries.Usage> resultCompletableFuture : list) {
                 final UsageSeries.Usage usage = resultCompletableFuture.get();
                 usageSeries.getUsages().add(usage);
-                System.out.println(123);
             }
 
         } catch (Exception ex) {
-
+            ex.printStackTrace();
         }
         return usageSeries;
     }
-
-
 
 
     public CompletableFuture<UsageSeries.Usage> seriesAsync(
@@ -162,6 +148,8 @@ public class RecordService {
                         usage.applyInfluxSeries(result);
                         usage.applyHour();
                         usage.applyDay();
+                        usage.applyTotal();
+
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }

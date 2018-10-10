@@ -21,7 +21,7 @@ import java.util.Map;
  * TODO: accept? typed json is sometimes hard to read
  */
 @RestController
-@RequestMapping("/kb")
+@RequestMapping("/meter/kb")
 public class KBController {
 
     private static final Logger logger = LoggerFactory.getLogger(KBController.class);

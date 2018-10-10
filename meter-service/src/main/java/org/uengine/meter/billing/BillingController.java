@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @RestController
-@RequestMapping("/billing")
+@RequestMapping("/meter/billing")
 public class BillingController {
 
     @Autowired

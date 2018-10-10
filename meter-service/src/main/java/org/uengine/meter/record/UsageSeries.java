@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.influxdb.dto.QueryResult;
 import org.influxdb.impl.TimeUtil;
+import org.springframework.util.StringUtils;
 import org.uengine.meter.rule.Unit;
 
 import java.sql.Timestamp;
@@ -78,6 +79,33 @@ public class UsageSeries {
 
     private String unit;
     private List<Usage> usages;
+
+    public List<Map> applyKBUsageItems(String user) {
+        //add only subscriptionId exist.
+        final ArrayList<Map> list = new ArrayList<>();
+        if (this.usages == null || this.usages.isEmpty()) {
+            return list;
+        }
+        for (Usage usage : this.usages) {
+            final String subscriptionId = usage.getSubscriptionId();
+            if (StringUtils.isEmpty(subscriptionId)) {
+                continue;
+            }
+            final List<Item> amountPerDay = usage.amountPerDay;
+            for (int i = 0; i < amountPerDay.size(); i++) {
+                final Item item = amountPerDay.get(i);
+                if (item.getTotal() > 0L) {
+                    HashMap<Object, Object> map = new HashMap<>();
+                    map.put("subscriptionId", subscriptionId);
+                    map.put("unitType", this.unit);
+                    map.put("date", item.getFormatted());
+                    map.put("amount", item.getTotal());
+                    list.add(map);
+                }
+            }
+        }
+        return list;
+    }
 
     @Data
     @NoArgsConstructor
@@ -301,6 +329,28 @@ public class UsageSeries {
             item.setFormatted(new SimpleDateFormat("yyyy-MM-dd").format(current));
             amountPerDay.add(item);
         }
+
+        public void applyTotal() {
+            this.amountTotal = new AmountTotal();
+            if (!this.amountPerDay.isEmpty()) {
+                final int days = this.amountPerDay.size();
+                final Long start = this.amountPerDay.get(0).getTime();
+                final Long end = this.amountPerDay.get(days - 1).getTime();
+
+                this.amountTotal.setDays(days);
+                this.amountTotal.setStart(new Date(start));
+                this.amountTotal.setEnd(new Date(end));
+
+                this.amountTotal.setUsage(
+                        this.amountPerDay.stream().map(item -> item.getUsage()).mapToLong(v -> v).sum());
+
+                this.amountTotal.setFree(
+                        this.amountPerDay.stream().map(item -> item.getFree()).mapToLong(v -> v).sum());
+
+                this.amountTotal.setTotal(
+                        this.amountPerDay.stream().map(item -> item.getTotal()).mapToLong(v -> v).sum());
+            }
+        }
     }
 
 
@@ -309,6 +359,7 @@ public class UsageSeries {
     public static class AmountTotal {
         private Date start;
         private Date end;
+        private int days;
         private Long usage;
         private Long free;
         private Long total;
