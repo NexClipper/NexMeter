@@ -13,6 +13,7 @@ import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.util.UrlPathHelper;
+import org.uengine.meter.proxy.KBRestFilter;
 
 /**
  * Created by uengine on 2017. 11. 1..
@@ -33,15 +34,15 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         configurer.setUrlPathHelper(urlPathHelper);
     }
 
-//    @Bean
+    //    @Bean
 //    public TenantAwareFilter tenantAwareFilter() {
 //        return new TenantAwareFilter();
 //    }
 //
-//    @Bean
-//    public RestFilter restFilter() {
-//        return new RestFilter();
-//    }
+    @Bean
+    public KBRestFilter kbRestFilter() {
+        return new KBRestFilter();
+    }
 //
 //    @Bean
 //    public CorsFilter corsFilter() {

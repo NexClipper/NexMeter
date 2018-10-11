@@ -9,9 +9,16 @@ server:
   servlet:
     context-path: /
 
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} ${LOG_LEVEL_PATTERN:-%5p} %m%n"
+
 ---
 spring:
   profiles: local
+  data:
+    rest:
+      base-path: meter
   cloud:
     stream:
       kafka:
@@ -64,6 +71,7 @@ killbill:
   api-key: admin
   api-secret: password
 
+
 ---
 spring:
   profiles: docker
@@ -93,3 +101,4 @@ spring:
     url: jdbc:mariadb://localhost:3306/killbill
     username: root
     password: killbill
+
