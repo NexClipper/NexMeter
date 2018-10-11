@@ -7,11 +7,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.uengine.meter.billing.BillingService;
-import org.uengine.meter.billing.kb.KBApi;
 import org.uengine.meter.record.kafka.RecordMessage;
 import org.uengine.meter.record.kafka.RecordProcessor;
 import org.uengine.meter.rule.Unit;
-import org.uengine.meter.rule.UnitRedisRepository;
 import org.uengine.meter.rule.UnitRepository;
 
 import javax.servlet.http.HttpServletRequest;
@@ -160,40 +158,31 @@ public class RecordController {
                          @RequestParam(value = "division", defaultValue = "1h") String division
     ) throws Exception {
 
-        //TODO if unit null, get all unit and perform.
         if (StringUtils.isEmpty(unit)) {
-            ArrayList<UsageSeries> list = new ArrayList<>();
+            ArrayList<Object> list = new ArrayList<>();
             final Iterable<Unit> units = unitRepository.findAll();
             units.forEach(item -> {
                 final String perUnitName = item.getName();
-                final UsageSeries series = recordService.getSeries(perUnitName, user, start, end, division);
-                list.add(series);
+                if (StringUtils.isEmpty(user)) {
+                    try {
+                        final UsageSeries usageSeries = recordService.getDashboardSeries(perUnitName, start, end, division);
+                        list.add(usageSeries);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                } else {
+                    final UsageUserSeries series = recordService.getUserSeries(perUnitName, user, start, end, division);
+                    list.add(series);
+                }
             });
             return list;
         } else {
-            return recordService.getSeries(unit, user, start, end, division);
+            if (StringUtils.isEmpty(user)) {
+                return recordService.getDashboardSeries(unit, start, end, division);
+            } else {
+                return recordService.getUserSeries(unit, user, start, end, division);
+            }
         }
-        //사용자의 subscription id 리스트를 구함.
-        //subscription id + unit 으로 각각 쿼리함.
-
-        //시간 시리즈로 정렬.
-        //avg 일 경우
-        //무료 시간이 시간당이면 바로 제함.
-
-        //무료 시간이 일일이면
-        //일일 시리즈로 평균 재정렬
-        //일일 시리즈에서 제함.
-
-        //sum 일 경우
-        //시간 시리즈로 정렬.
-        //무료 시간이 시간당이면 바로 제함.
-
-        //무료 시간이 일일이면
-        //일일 시리즈로 합산 재정렬
-        //일일 시리즈에서 제함.
-
-        //callable 로 여러 시리즈를 동시 쿼리하도록 함.
-
     }
 
     /**
@@ -222,7 +211,7 @@ public class RecordController {
             final Iterable<Unit> units = unitRepository.findAll();
             units.forEach(item -> {
                 final String perUnitName = item.getName();
-                final UsageSeries series = recordService.getSeries(perUnitName, user, start, end, division);
+                final UsageUserSeries series = recordService.getUserSeries(perUnitName, user, start, end, division);
                 final List<Map> kbUsageItems = series.applyKBUsageItems(user);
                 list.addAll(kbUsageItems);
             });

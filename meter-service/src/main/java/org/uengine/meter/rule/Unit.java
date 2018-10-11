@@ -231,6 +231,7 @@ public class Unit {
         private LimitRefreshInterval limitRefreshInterval;
         private Long freeAmount;
         private FreePeriod freePeriod;
+        private boolean putEmptyPeriod;
 
         public static enum CountingMethod {
             AVG, PEAK, SUM

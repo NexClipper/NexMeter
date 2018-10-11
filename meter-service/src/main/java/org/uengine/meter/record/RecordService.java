@@ -16,28 +16,18 @@
 
 package org.uengine.meter.record;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.influxdb.dto.QueryResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.uengine.meter.Application;
 import org.uengine.meter.billing.BillingService;
 import org.uengine.meter.billing.UserSubscriptions;
-import org.uengine.meter.billing.kb.KBApi;
-import org.uengine.meter.limit.LimitHistory;
-import org.uengine.meter.limit.Limiter;
-import org.uengine.meter.limit.kafka.LimitProcessor;
 import org.uengine.meter.rule.Unit;
 import org.uengine.meter.rule.UnitRepository;
 
 import java.util.*;
 import java.util.concurrent.*;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Slf4j
 @Service
@@ -49,7 +39,26 @@ public class RecordService {
     @Autowired
     private UnitRepository unitRepository;
 
-    public UsageSeries getSeries(String unit, String user, Date start, Date end, String division) {
+    @Autowired
+    private RecordInfluxRepository influxRepository;
+
+    public UsageSeries getDashboardSeries(String unit, Date start, Date end, String division) throws Exception {
+        final Unit unitRule = unitRepository.findByName(unit);
+        final Unit.Rule defaultRule = unitRule.findDefaultRule();
+        if (defaultRule == null) {
+            return null;
+        }
+        final QueryResult.Result result = influxRepository.findByUnitAndUserAndSubscriptionId(
+                defaultRule.getCountingMethod(), unit, null, null, start, end, division);
+
+        final UsageSeries series = new UsageSeries();
+        series.setUnit(unit);
+        series.setRule(defaultRule);
+        series.applyInfluxSeries(result);
+        return series;
+    }
+
+    public UsageUserSeries getUserSeries(String unit, String user, Date start, Date end, String division) {
         final Unit unitRule = unitRepository.findByName(unit);
 
         //get all subscriptions
@@ -62,7 +71,7 @@ public class RecordService {
             return null;
         }
 
-        List<CompletableFuture<UsageSeries.Usage>> list = new ArrayList<>();
+        List<CompletableFuture<UsageUserSeries.Usage>> list = new ArrayList<>();
 
         for (Map.Entry<String, Unit.Rule> entry : ruleMapPerSubscription.entrySet()) {
             try {
@@ -90,7 +99,7 @@ public class RecordService {
                     subscriptionId = null;
                 }
 
-                final CompletableFuture<UsageSeries.Usage> async = seriesAsync(
+                final CompletableFuture<UsageUserSeries.Usage> async = seriesAsync(
                         rule,
                         unit,
                         user,
@@ -105,7 +114,7 @@ public class RecordService {
             }
         }
 
-        final UsageSeries usageSeries = new UsageSeries();
+        final UsageUserSeries usageSeries = new UsageUserSeries();
         usageSeries.setUnit(unit);
         usageSeries.setUsages(new ArrayList<>());
 
@@ -113,8 +122,8 @@ public class RecordService {
         try {
             //wait until all query execute.
             futures.get();
-            for (CompletableFuture<UsageSeries.Usage> resultCompletableFuture : list) {
-                final UsageSeries.Usage usage = resultCompletableFuture.get();
+            for (CompletableFuture<UsageUserSeries.Usage> resultCompletableFuture : list) {
+                final UsageUserSeries.Usage usage = resultCompletableFuture.get();
                 usageSeries.getUsages().add(usage);
             }
 
@@ -125,7 +134,7 @@ public class RecordService {
     }
 
 
-    public CompletableFuture<UsageSeries.Usage> seriesAsync(
+    public CompletableFuture<UsageUserSeries.Usage> seriesAsync(
             final Unit.Rule rule,
             final String unit,
             final String user,
@@ -135,13 +144,13 @@ public class RecordService {
             final String division
     ) {
 
-        CompletableFuture<UsageSeries.Usage> future =
+        CompletableFuture<UsageUserSeries.Usage> future =
                 CompletableFuture.supplyAsync(() -> {
                     final RecordInfluxRepository influxRepository = Application.getApplicationContext().getBean(RecordInfluxRepository.class);
                     final QueryResult.Result result = influxRepository.findByUnitAndUserAndSubscriptionId(
                             rule.getCountingMethod(), unit, user, subscriptionId, start, end, division);
 
-                    final UsageSeries.Usage usage = new UsageSeries.Usage();
+                    final UsageUserSeries.Usage usage = new UsageUserSeries.Usage();
                     usage.setRule(rule);
                     usage.setSubscriptionId(subscriptionId);
                     try {

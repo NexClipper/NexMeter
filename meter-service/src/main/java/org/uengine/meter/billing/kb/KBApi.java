@@ -47,6 +47,28 @@ public class KBApi {
         }
     }
 
+
+    public Map getTanantByApiKey(String apiKey) {
+        String method = "GET";
+        String path = "/1.0/kb/tenants?apiKey=" + apiKey;
+
+        Map headers = new HashMap();
+        try {
+            HttpResponse httpResponse = this.apiRequest(method, path, null, headers);
+            if (httpResponse.getStatusLine().getStatusCode() == 200) {
+                String result = EntityUtils.toString(httpResponse.getEntity());
+                return objectMapper.readValue(result, Map.class);
+            } else {
+                logger.error("Not found tenant ");
+                return null;
+            }
+        } catch (IOException ex) {
+            logger.error("Failed to request tenant ");
+            return null;
+        }
+    }
+
+
     public Map getAccountById(String accountId) {
         String method = "GET";
         String path = "/1.0/kb/accounts/" + accountId;

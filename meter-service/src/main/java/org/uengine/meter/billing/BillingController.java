@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.uengine.meter.billing.kafka.BillingProcessor;
+import org.uengine.meter.billing.kb.KBApi;
+import org.uengine.meter.billing.kb.KBConfig;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,11 +21,22 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class BillingController {
 
     @Autowired
+    private KBConfig kbConfig;
+
+    @Autowired
+    private KBApi kbApi;
+
+    @Autowired
     private BillingProcessor billingProcessor;
 
     private final CopyOnWriteArrayList<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
     private final Log logger = LogFactory.getLog(getClass());
+
+    @GetMapping(value = "/tenant", produces = "application/json")
+    public Object tenant() {
+        return kbApi.getTanantByApiKey(kbConfig.getApiKey());
+    }
 
     @PostMapping(value = "/event", produces = "application/json")
     public String receiveBillingEvent(@RequestBody String event) {
