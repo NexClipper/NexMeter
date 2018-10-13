@@ -62,8 +62,8 @@ public class LimiterService {
         record.completeDomain();
         if (record.getRule() != null) {
             final String count_key = this.getKey(record.getUnit(), record.getUser());
-            final Unit.Rule.CountingMethod countingMethod = record.getRule().getCountingMethod();
-            if (Unit.Rule.CountingMethod.SUM.equals(countingMethod)) {
+            final Unit.CountingMethod countingMethod = record.getRule().getCountingMethod();
+            if (Unit.CountingMethod.SUM.equals(countingMethod)) {
                 //reset current amount
                 this.redisTemplate.boundValueOps(count_key).set(amount);
             }
@@ -129,7 +129,7 @@ public class LimiterService {
         final Long limitAmount = rule.getLimitAmount();
 
         //if sum
-        if (Unit.Rule.CountingMethod.SUM.equals(rule.getCountingMethod())) {
+        if (Unit.CountingMethod.SUM.equals(rule.getCountingMethod())) {
             //limitRefreshInterval, limitAmount required
             if (limitRefreshInterval == null || limitAmount == null) {
                 return limiter;
@@ -205,11 +205,11 @@ public class LimiterService {
             Long usage,
             Long refreshInterval,
             String count_key,
-            Unit.Rule.CountingMethod countingMethod,
+            Unit.CountingMethod countingMethod,
             Limiter limiter) {
         if (limit != null) {
             //if sum, add recent usage
-            if (Unit.Rule.CountingMethod.SUM.equals(countingMethod)) {
+            if (Unit.CountingMethod.SUM.equals(countingMethod)) {
                 handleExpiration(count_key, refreshInterval, limiter);
 
                 Long current = 0L;

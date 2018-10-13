@@ -36,7 +36,7 @@ public class RecordInfluxRepository {
     }
 
     public QueryResult.Result findByUnitAndUserAndSubscriptionId(
-            Unit.Rule.CountingMethod countingMethod,
+            Unit.CountingMethod countingMethod,
             String unit,
             String user,
             String subscriptionId,
@@ -45,11 +45,11 @@ public class RecordInfluxRepository {
             String division) {
 
         String function = null;
-        if (Unit.Rule.CountingMethod.AVG.equals(countingMethod)) {
+        if (Unit.CountingMethod.AVG.equals(countingMethod)) {
             function = "mean";
-        } else if (Unit.Rule.CountingMethod.PEAK.equals(countingMethod)) {
+        } else if (Unit.CountingMethod.PEAK.equals(countingMethod)) {
             function = "max";
-        } else if (Unit.Rule.CountingMethod.SUM.equals(countingMethod)) {
+        } else if (Unit.CountingMethod.SUM.equals(countingMethod)) {
             function = "sum";
         }
 

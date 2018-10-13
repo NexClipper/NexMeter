@@ -29,6 +29,9 @@ public class BillingController {
     @Autowired
     private BillingProcessor billingProcessor;
 
+    @Autowired
+    private BillingService billingService;
+
     private final CopyOnWriteArrayList<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
     private final Log logger = LogFactory.getLog(getClass());
@@ -42,6 +45,12 @@ public class BillingController {
     public String receiveBillingEvent(@RequestBody String event) {
         billingProcessor.sendBillingMessage(event);
         return "";
+    }
+    //getUserSubscriptions
+
+    @GetMapping(value = "/subscriptions", produces = "application/json")
+    public Object getUserSubscriptions(@RequestParam(value = "user", required = false) String user) {
+        return billingService.getUserSubscriptions(user, true);
     }
 
     @GetMapping("/emitter")

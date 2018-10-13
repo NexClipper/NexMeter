@@ -95,15 +95,17 @@ public class UsageUserSeries {
                 continue;
             }
             final List<Item> amountPerDay = usage.amountPerDay;
-            for (int i = 0; i < amountPerDay.size(); i++) {
-                final Item item = amountPerDay.get(i);
-                if (item.getTotal() > 0L) {
-                    HashMap<Object, Object> map = new HashMap<>();
-                    map.put("subscriptionId", subscriptionId);
-                    map.put("unitType", this.unit);
-                    map.put("date", item.getFormatted());
-                    map.put("amount", item.getTotal());
-                    list.add(map);
+            if(amountPerDay != null){
+                for (int i = 0; i < amountPerDay.size(); i++) {
+                    final Item item = amountPerDay.get(i);
+                    if (item.getTotal() > 0L) {
+                        HashMap<Object, Object> map = new HashMap<>();
+                        map.put("subscriptionId", subscriptionId);
+                        map.put("unitType", this.unit);
+                        map.put("date", item.getFormatted());
+                        map.put("amount", item.getTotal());
+                        list.add(map);
+                    }
                 }
             }
         }
@@ -136,8 +138,8 @@ public class UsageUserSeries {
             long previousAmount = 0L;
 
             //if avg or peak, and putEmptyPeriod
-            if ((Unit.Rule.CountingMethod.AVG.equals(rule.getCountingMethod()) ||
-                    Unit.Rule.CountingMethod.PEAK.equals(rule.getCountingMethod())) && rule.isPutEmptyPeriod()) {
+            if ((Unit.CountingMethod.AVG.equals(rule.getCountingMethod()) ||
+                    Unit.CountingMethod.PEAK.equals(rule.getCountingMethod())) && rule.isPutEmptyPeriod()) {
 
                 usePutEmptyPeriod = true;
 
@@ -267,14 +269,14 @@ public class UsageUserSeries {
 
             long itemUsage = 0L;
             if (!amountList.isEmpty()) {
-                if (Unit.Rule.CountingMethod.SUM.equals(rule.getCountingMethod())) {
+                if (Unit.CountingMethod.SUM.equals(rule.getCountingMethod())) {
                     itemUsage = amountList.stream().mapToLong(v -> v).sum();
                 }
-                if (Unit.Rule.CountingMethod.AVG.equals(rule.getCountingMethod())) {
+                if (Unit.CountingMethod.AVG.equals(rule.getCountingMethod())) {
                     itemUsage = (long) Math.ceil(
                             new Double(amountList.stream().mapToLong(v -> v).sum()) / new Double(amountList.size()));
                 }
-                if (Unit.Rule.CountingMethod.PEAK.equals(rule.getCountingMethod())) {
+                if (Unit.CountingMethod.PEAK.equals(rule.getCountingMethod())) {
                     final long max = amountList.stream().mapToLong(v -> v)
                             .max()
                             .getAsLong();
@@ -298,7 +300,7 @@ public class UsageUserSeries {
             long itemUsage = 0L;
             long itemFree = 0L;
             if (!amountList.isEmpty()) {
-                if (Unit.Rule.CountingMethod.SUM.equals(rule.getCountingMethod())) {
+                if (Unit.CountingMethod.SUM.equals(rule.getCountingMethod())) {
 
                     itemUsage = amountList.stream().map(item -> item.getUsage()).mapToLong(v -> v).sum();
 
@@ -313,8 +315,8 @@ public class UsageUserSeries {
                     }
                 }
 
-                if (Unit.Rule.CountingMethod.AVG.equals(rule.getCountingMethod()) ||
-                        Unit.Rule.CountingMethod.PEAK.equals(rule.getCountingMethod())) {
+                if (Unit.CountingMethod.AVG.equals(rule.getCountingMethod()) ||
+                        Unit.CountingMethod.PEAK.equals(rule.getCountingMethod())) {
 
                     //if avg or peak, freePeriod and periodSplitting hour
                     if (Unit.Rule.PeriodSplitting.HOUR.equals(rule.getPeriodSplitting())) {
@@ -330,7 +332,7 @@ public class UsageUserSeries {
                     }
                     //if avg, freePeriod and periodSplitting day
                     else if (Unit.Rule.PeriodSplitting.DAY.equals(rule.getPeriodSplitting())) {
-                        if (Unit.Rule.CountingMethod.AVG.equals(rule.getCountingMethod())) {
+                        if (Unit.CountingMethod.AVG.equals(rule.getCountingMethod())) {
 
                             itemUsage = (long) Math.ceil(
                                     new Double(amountList.stream()
@@ -340,7 +342,7 @@ public class UsageUserSeries {
                                             / new Double(amountList.size()));
                         }
 
-                        if (Unit.Rule.CountingMethod.PEAK.equals(rule.getCountingMethod())) {
+                        if (Unit.CountingMethod.PEAK.equals(rule.getCountingMethod())) {
                             final long max =
                                     amountList.stream().map(item -> item.getUsage())
                                             .mapToLong(v -> v).max().getAsLong();

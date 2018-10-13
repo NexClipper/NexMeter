@@ -30,6 +30,13 @@ public class Unit {
     @Column(unique = true, nullable = false)
     private String name;
 
+    @Column(nullable = false)
+    private CountingMethod countingMethod;
+
+    public static enum CountingMethod {
+        AVG, PEAK, SUM
+    }
+
     @JsonIgnore
     @Column(columnDefinition = "TEXT")
     private String rulesStr;
@@ -50,8 +57,13 @@ public class Unit {
 
     public List<Rule> getRules() {
         try {
-            return new ObjectMapper().readValue(this.getRulesStr(), new TypeReference<List<Rule>>() {
+            final List<Rule> list = new ObjectMapper().readValue(this.getRulesStr(), new TypeReference<List<Rule>>() {
             });
+            //override countingMethod
+            for (int i = 0; i < list.size(); i++) {
+                list.get(i).setCountingMethod(this.countingMethod);
+            }
+            return list;
         } catch (Exception ex) {
             return new ArrayList<>();
         }
@@ -123,8 +135,8 @@ public class Unit {
         for (UserSubscriptions.Subscription subscription : subscriptions) {
             if (category.equals(subscription.getCategory()) && plan.equals(subscription.getPlan())) {
                 match = subscription;
+                break;
             }
-            break;
         }
         return match;
     }
@@ -192,8 +204,8 @@ public class Unit {
         Assert.isTrue(!(rule.getFreePeriod() == null && rule.getFreeAmount() != null), "freePeriod: FreeAmount need FreePeriod");
 
         //Case countingMethod avg or peak
-        if (Rule.CountingMethod.AVG.equals(rule.getCountingMethod()) ||
-                Rule.CountingMethod.PEAK.equals(rule.getCountingMethod())) {
+        if (CountingMethod.AVG.equals(rule.getCountingMethod()) ||
+                CountingMethod.PEAK.equals(rule.getCountingMethod())) {
 
             //case1: periodSplitting mustn't be null
             Assert.notNull(rule.getPeriodSplitting(), "periodSplitting: mustn't be null");
@@ -208,7 +220,7 @@ public class Unit {
         }
 
         //Case countingMethod sum
-        if (Rule.CountingMethod.SUM.equals(rule.getCountingMethod())) {
+        if (CountingMethod.SUM.equals(rule.getCountingMethod())) {
             //case1: periodSplitting must be null
             Assert.isTrue(rule.getPeriodSplitting() == null, "periodSplitting: must be null");
 
@@ -232,10 +244,6 @@ public class Unit {
         private Long freeAmount;
         private FreePeriod freePeriod;
         private boolean putEmptyPeriod;
-
-        public static enum CountingMethod {
-            AVG, PEAK, SUM
-        }
 
         public static enum PeriodSplitting {
             HOUR, DAY

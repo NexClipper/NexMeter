@@ -153,13 +153,13 @@ public class RecordController {
                          HttpServletResponse response,
                          @RequestParam(value = "unit", required = false) String unit,
                          @RequestParam(value = "user", required = false) String user,
-                         @RequestParam(value = "start") @DateTimeFormat(pattern = "yyyy-MM-dd") Date start,
-                         @RequestParam(value = "end") @DateTimeFormat(pattern = "yyyy-MM-dd") Date end,
+                         @RequestParam(value = "start") @DateTimeFormat(pattern = "yyyy-MM-dd HH") Date start,
+                         @RequestParam(value = "end") @DateTimeFormat(pattern = "yyyy-MM-dd HH") Date end,
                          @RequestParam(value = "division", defaultValue = "1h") String division
     ) throws Exception {
 
+        ArrayList<Object> list = new ArrayList<>();
         if (StringUtils.isEmpty(unit)) {
-            ArrayList<Object> list = new ArrayList<>();
             final Iterable<Unit> units = unitRepository.findAll();
             units.forEach(item -> {
                 final String perUnitName = item.getName();
@@ -175,14 +175,14 @@ public class RecordController {
                     list.add(series);
                 }
             });
-            return list;
         } else {
             if (StringUtils.isEmpty(user)) {
-                return recordService.getDashboardSeries(unit, start, end, division);
+                list.add(recordService.getDashboardSeries(unit, start, end, division));
             } else {
-                return recordService.getUserSeries(unit, user, start, end, division);
+                list.add(recordService.getUserSeries(unit, user, start, end, division));
             }
         }
+        return list;
     }
 
     /**

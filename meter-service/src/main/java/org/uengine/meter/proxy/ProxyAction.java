@@ -327,7 +327,6 @@ public class ProxyAction {
                 servletResponse.addHeader(entry.getKey(), entry.getValue());
             }
         }
-        servletResponse.setHeader("Access-Control-Expose-Headers", "x-uengine-pagination-totalnbrecords, x-uengine-pagination-maxnbrecords");
     }
 
     protected void copyResponseHeader(HttpServletRequest servletRequest,

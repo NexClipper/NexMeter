@@ -15,22 +15,15 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
-import org.uengine.meter.billing.BillingController;
-import org.uengine.meter.billing.BillingService;
 import org.uengine.meter.limit.LimiterService;
 import org.uengine.meter.record.Record;
 import org.uengine.meter.record.RecordInfluxRepository;
-import org.uengine.meter.rule.Unit;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 @Service
 public class RecordProcessor {
@@ -38,16 +31,7 @@ public class RecordProcessor {
     private final Log logger = LogFactory.getLog(getClass());
 
     @Autowired
-    private BillingService billingService;
-
-    @Autowired
-    private RecordConfig billingConfig;
-
-    @Autowired
     private ObjectMapper objectMapper;
-
-    @Autowired
-    private BillingController billingController;
 
     @Autowired
     private RecordInfluxRepository recordInfluxRepository;

@@ -44,16 +44,14 @@ public class RecordService {
 
     public UsageSeries getDashboardSeries(String unit, Date start, Date end, String division) throws Exception {
         final Unit unitRule = unitRepository.findByName(unit);
-        final Unit.Rule defaultRule = unitRule.findDefaultRule();
-        if (defaultRule == null) {
+        if (unitRule == null) {
             return null;
         }
         final QueryResult.Result result = influxRepository.findByUnitAndUserAndSubscriptionId(
-                defaultRule.getCountingMethod(), unit, null, null, start, end, division);
+                unitRule.getCountingMethod(), unit, null, null, start, end, division);
 
         final UsageSeries series = new UsageSeries();
-        series.setUnit(unit);
-        series.setRule(defaultRule);
+        series.setUnitRule(unitRule);
         series.applyInfluxSeries(result);
         return series;
     }

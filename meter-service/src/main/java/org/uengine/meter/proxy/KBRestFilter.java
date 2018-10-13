@@ -92,6 +92,8 @@ public class KBRestFilter extends GenericFilterBean {
         map.put("Access-Control-Max-Age", "3600");
         map.put("Access-Control-Allow-Headers", "x-requested-with, origin, content-type, accept, " +
                 "authorization, X-organization-id, X-Killbill-CreatedBy, X-Killbill-Reason, X-Killbill-Comment, Location");
+
+        map.put("Access-Control-Expose-Headers", "x-killbill-pagination-totalnbrecords, x-killbill-pagination-maxnbrecords, Location");
         return map;
     }
 
