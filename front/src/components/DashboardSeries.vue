@@ -71,7 +71,7 @@
     async load() {
       var me = this;
       var date = new Date();
-      var end = moment(date).format('YYYY-MM-DD HH');
+      var end = moment(date).add(1, 'hours').format('YYYY-MM-DD HH');
       var start;
       if (me.time == '3days') {
         start = moment(date).subtract(3, 'days').format('YYYY-MM-DD HH');

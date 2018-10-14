@@ -17,6 +17,14 @@
         <user-series v-if="selectedUnit" :unit="selectedUnit" :user="externalKey"></user-series>
       </v-flex>
     </v-layout>
+    <v-layout row>
+      <v-flex xs6>
+        <limit-viewer v-if="selectedUnit" :unit="selectedUnit" :user="externalKey"></limit-viewer>
+      </v-flex>
+      <v-flex xs6>
+        <limit-history v-if="selectedUnit" :unit="selectedUnit" :user="externalKey"></limit-history>
+      </v-flex>
+    </v-layout>
 
   </div>
 </template>
@@ -24,10 +32,14 @@
 <script>
   import {Vue, Component, Prop, Watch} from 'vue-property-decorator';
   import UserSeries from '@/components/UserSeries'
+  import LimitViewer from '@/components/LimitViewer'
+  import LimitHistory from '@/components/LimitHistory'
 
   @Component({
     components: {
-      'user-series': UserSeries
+      'user-series': UserSeries,
+      'limit-viewer': LimitViewer,
+      'limit-history': LimitHistory
     }
   })
   export default class Units extends Vue {

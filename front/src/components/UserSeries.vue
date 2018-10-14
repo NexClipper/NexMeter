@@ -66,6 +66,8 @@
         <highcharts style="height: 200px" v-if="loaded" :options="options"></highcharts>
       </v-card-text>
     </v-card>
+
+    <usage-table v-if="loaded" :usages="usages"></usage-table>
   </div>
 </template>
 
@@ -73,6 +75,7 @@
   import {Vue, Component, Prop, Watch} from 'vue-property-decorator';
   import Highcharts from 'highcharts';
   import moment from 'moment';
+  import UsageTable from '@/components/UsageTable'
 
   Highcharts.setOptions({
     global: {
@@ -80,7 +83,11 @@
     }
   });
 
-  @Component
+  @Component({
+    components: {
+      'usage-table': UsageTable
+    }
+  })
   export default class UserSeries extends Vue {
     @Prop(String) unit;
     @Prop(String) user;
@@ -102,6 +109,7 @@
         }
       };
       return {
+        usages: null,
         loaded: false,
         options: options,
         timeItems: [
@@ -165,7 +173,7 @@
     setTime() {
       var me = this;
       var date = new Date();
-      var end = moment(date).toDate();
+      var end = moment(date).add(1, 'hours').toDate();
       var start;
       if (me.time == '3days') {
         start = moment(date).subtract(3, 'days').toDate();
@@ -243,6 +251,7 @@
       me.options.yAxis = yAxis;
       me.options.series = series;
       me.loaded = true;
+      me.usages = usages;
     }
   }
 </script>

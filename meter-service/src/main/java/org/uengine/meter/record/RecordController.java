@@ -115,9 +115,9 @@ public class RecordController {
 
 
     //TODO
-    //UI
+    //UI. ok
+    //paypal express checkout test. ok
     //billing hosted page
-    //paypal express checkout test
     //user sync
     //docker
 
