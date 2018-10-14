@@ -9,11 +9,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.spring.data.rest.configuration.SpringDataRestConfiguration;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
 @RestController
@@ -23,6 +26,8 @@ import org.springframework.web.bind.annotation.RestController;
 @EnableRetry
 @EnableAsync(proxyTargetClass = true)
 @EnableCaching
+@EnableSwagger2
+//@Import(SpringDataRestConfiguration.class)
 public class Application {
 
     private final Log logger = LogFactory.getLog(getClass());

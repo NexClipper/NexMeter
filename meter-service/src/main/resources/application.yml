@@ -1,3 +1,12 @@
+api-info:
+  title: UENGINE METER API DOCUMENT
+  description: UENGINE METER API DOCUMENT for Cloud service
+  terms-of-service-url: https://seungpilpark.github.io/uEngineMeter/#/
+  contact: UENGINE
+  license: MIT
+  license-url:
+  version: 1
+
 spring:
   application:
       name: meter-service
@@ -41,8 +50,6 @@ spring:
           destination: meter-record
         record-producer:
           destination: meter-record
-
-
 
 
   redis-host: 127.0.0.1:6379
