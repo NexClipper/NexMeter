@@ -46,7 +46,7 @@
           </v-icon>
           <v-icon
             small
-            @click="deleteItem(props.index)"
+            @click="deleteConfirm(props.index)"
           >
             delete
           </v-icon>
@@ -62,6 +62,7 @@
       :cancel-text="'취소'"
       ref="deleteDialog">
     </confirm>
+
   </v-card>
 </template>
 
@@ -102,10 +103,6 @@
       this.$refs['rule-edit'].open(ruleIndex);
     }
 
-    deleteItem() {
-
-    }
-
     mounted() {
       this.load();
     }
@@ -116,25 +113,30 @@
       this.unit = res.data;
     }
 
-    //
-    // deleteConfirm(unit) {
-    //   var me = this;
-    //   this.$refs['deleteDialog'].open(function (confirm) {
-    //     if (confirm) {
-    //       me.deleteItem(unit);
-    //     }
-    //   })
-    // }
-    //
-    // async deleteItem(unit) {
-    //   try {
-    //     await axios.delete('meter/units/' + unit.id);
-    //     this.$root.$children[0].info('deleted.');
-    //     this.load();
-    //   } catch (e) {
-    //     console.log(e.response);
-    //     this.$root.$children[0].error('failed.');
-    //   }
-    // }
+
+    deleteConfirm(ruleIndex) {
+      var me = this;
+      this.$refs['deleteDialog'].open(function (confirm) {
+        if (confirm) {
+          me.deleteItem(ruleIndex);
+        }
+      })
+    }
+
+    async deleteItem(ruleIndex) {
+      var me = this;
+      console.log(this.unit, ruleIndex);
+      var copy = JSON.parse(JSON.stringify(me.unit));
+      copy.rules.splice(ruleIndex, 1);
+
+      try {
+        await axios.put('meter/units/' + this.unitId, copy);
+        this.$root.$children[0].info('deleted.');
+        this.load();
+      } catch (e) {
+        console.log(e.response);
+        this.$root.$children[0].error('failed.');
+      }
+    }
   }
 </script>

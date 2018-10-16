@@ -38,7 +38,7 @@ public class BillingController {
 
     @GetMapping(value = "/tenant", produces = "application/json")
     public Object tenant() {
-        return kbApi.getTanantByApiKey(kbConfig.getApiKey());
+        return kbApi.getTanantByApiKey(kbConfig.getApikey());
     }
 
     @PostMapping(value = "/event", produces = "application/json")

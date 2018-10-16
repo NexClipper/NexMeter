@@ -7,6 +7,7 @@ import org.influxdb.InfluxDBFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 
 
 @Configuration
@@ -21,7 +22,12 @@ public class InfluxDBConfig {
 
     @Bean
     public InfluxDB influxDBTemplate() {
-        InfluxDB influxDB = InfluxDBFactory.connect(url, username, password);
+        InfluxDB influxDB = null;
+        if (StringUtils.isEmpty(username) && StringUtils.isEmpty(password)) {
+            influxDB = InfluxDBFactory.connect(url);
+        } else {
+            influxDB = InfluxDBFactory.connect(url, username, password);
+        }
         influxDB.setDatabase(database);
 
         //recreate retentionPolicy

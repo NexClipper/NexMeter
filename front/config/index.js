@@ -20,7 +20,7 @@ module.exports = {
     notifyOnErrors: true,
     poll: false, // https://webpack.js.org/configuration/dev-server/#devserver-watchoptions-
 
-    
+
     /**
      * Source Maps
      */
@@ -37,11 +37,9 @@ module.exports = {
   },
 
   build: {
-    // Template for index.html
-    index: path.resolve(__dirname, '../dist/index.html'),
-
-    // Paths
-    assetsRoot: path.resolve(__dirname, '../dist'),
+    env: require('./prod.env'),
+    index: path.resolve(__dirname, '../../meter-service/src/main/resources/static/index.html'),
+    assetsRoot: path.resolve(__dirname, '../../meter-service/src/main/resources/static'),
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
 

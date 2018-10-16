@@ -69,8 +69,8 @@ public class KBRestFilter extends GenericFilterBean {
         requiredHeaders.put("Authorization", "Basic " + token);
         requiredHeaders.put("Content-Type", "application/json");
         requiredHeaders.put("Accept", "application/json");
-        requiredHeaders.put("X-Killbill-ApiKey", kbConfig.getApiKey());
-        requiredHeaders.put("X-Killbill-ApiSecret", kbConfig.getApiSecret());
+        requiredHeaders.put("X-Killbill-ApiKey", kbConfig.getApikey());
+        requiredHeaders.put("X-Killbill-ApiSecret", kbConfig.getApisecret());
 
         ProxyRequest proxyRequest = new ProxyRequest();
         proxyRequest.setRequest(request);

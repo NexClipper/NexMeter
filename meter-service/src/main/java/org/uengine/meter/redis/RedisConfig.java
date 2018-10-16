@@ -26,7 +26,7 @@ public class RedisConfig {
 
     @Bean
     public JedisConnectionFactory jedisConnectionFactory() {
-        String redisHost = environment.getProperty("spring.redis-host");
+        String redisHost = environment.getProperty("spring.redis");
 
         JedisConnectionFactory factory = new JedisConnectionFactory();
         factory.setHostName(redisHost.split(":")[0]);

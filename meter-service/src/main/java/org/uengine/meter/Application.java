@@ -2,6 +2,7 @@ package org.uengine.meter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cache.annotation.EnableCaching;
@@ -19,6 +20,7 @@ import springfox.documentation.spring.data.rest.configuration.SpringDataRestConf
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
+@EnableAutoConfiguration
 @RestController
 @ComponentScan
 @Configuration
@@ -26,8 +28,6 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableRetry
 @EnableAsync(proxyTargetClass = true)
 @EnableCaching
-@EnableSwagger2
-//@Import(SpringDataRestConfiguration.class)
 public class Application {
 
     private final Log logger = LogFactory.getLog(getClass());
@@ -40,7 +40,8 @@ public class Application {
     public static ConfigurableApplicationContext applicationContext;
 
     public static void main(String[] args) {
-        applicationContext = new SpringApplicationBuilder(Application.class).run(args);
+        System.setProperty("org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH", "true");
+        applicationContext = new SpringApplicationBuilder(Application.class).web(true).run(args);
     }
 
     public static ApplicationContext getApplicationContext() {

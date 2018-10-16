@@ -1,9 +1,7 @@
 # uEngine Meter
 
-
-Mac os X logstash install
+## run
 
 ```
-brew install logstash
-brew services start logstash
+
 ```

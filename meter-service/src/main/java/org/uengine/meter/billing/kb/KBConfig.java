@@ -12,6 +12,6 @@ public class KBConfig {
     private String url;
     private String username;
     private String password;
-    private String apiKey;
-    private String apiSecret;
+    private String apikey;
+    private String apisecret;
 }

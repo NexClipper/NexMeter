@@ -17,4 +17,9 @@ webapp
 src/main/resources/static
 
 
-killbill
+killbill/bundles.zip
+killbill/kaui.war
+killbill/*plugins.zip
+killbill/killbill-profiles-*
+
+meter-service/src/main/resources/static/

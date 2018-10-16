@@ -52,7 +52,7 @@ spring:
           destination: meter-record
 
 
-  redis-host: 127.0.0.1:6379
+  redis: 127.0.0.1:6379
   #redis-host: redis.pas-mini.io:6379
   influxdb:
     url: http://localhost:8086
@@ -75,37 +75,6 @@ killbill:
   url: http://localhost:9090
   username: admin
   password: password
-  api-key: admin
-  api-secret: password
-
-
----
-spring:
-  profiles: docker
-  data:
-    mongodb:
-      uri: mongodb://${MONGO_HOST}:27017/test
-  cloud:
-    stream:
-      kafka:
-        binder:
-          brokers: ${KAFKA_HOST}:9092
-      bindings:
-        meter-consumer:
-          group: meter-service
-          destination: meter
-        meter-producer:
-          destination: meter
-  redis-host: ${REDIS_HOST}:6379
-  jpa:
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        show_sql: true
-  datasource:
-    driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3306/killbill
-    username: root
-    password: killbill
+  apikey: admin
+  apisecret: password
 
