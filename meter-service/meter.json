@@ -1,0 +1,72 @@
+{
+  "id": "/billing-meter",
+  "cmd": null,
+  "cpus": 0.5,
+  "mem": 512,
+  "disk": 0,
+  "instances": 1,
+  "acceptedResourceRoles": [
+    "*"
+  ],
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+      "forcePullImage": true,
+      "image": "sppark/meter:v1",
+      "parameters": [
+
+      ],
+      "privileged": false
+    },
+    "volumes": [
+    ],
+    "portMappings": [
+      {
+        "containerPort": 8080,
+        "hostPort": 0,
+        "labels": {},
+        "protocol": "tcp",
+        "servicePort": 12004
+      }
+    ]
+  },
+  "env": {
+        "SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS": "broker.kafka.l4lb.thisdcos.directory:9092",
+        "SPRING_REDIS": "redis.marathon.l4lb.thisdcos.directory:6379",
+        "SPRING_INFLUXDB_URL": "http://influxdb.marathon.l4lb.thisdcos.directory:8087",
+        "SPRING_INFLUXDB_USERNAME": "",
+        "SPRING_INFLUXDB_PASSWORD": "",
+        "SPRING_INFLUXDB_DATABASE": "meter",
+        "SPRING_DATASOURCE_URL": "jdbc:mysql://192.168.0.162:12001/killbill",
+        "SPRING_DATASOURCE_USERNAME": "root",
+        "SPRING_DATASOURCE_PASSWORD": "killbill",
+        "KILLBILL_URL": "http://192.168.0.162:12002",
+        "KILLBILL_USERNAME": "admin",
+        "KILLBILL_PASSWORD": "password",
+        "KILLBILL_APIKEY": "admin",
+        "KILLBILL_APISECRET": "password"
+  },
+  "healthChecks": [
+    {
+      "gracePeriodSeconds": 300,
+      "ignoreHttp1xx": false,
+      "intervalSeconds": 60,
+      "maxConsecutiveFailures": 3,
+      "path": "/health",
+      "portIndex": 0,
+      "protocol": "HTTP",
+      "timeoutSeconds": 20,
+      "delaySeconds": 15
+    }
+  ],
+  "labels": {
+    "HAPROXY_GROUP": "external,internal",
+    "HAPROXY_0_VHOST": "meter.nexclipper.com"
+  },
+  "networks": [
+    {
+      "mode": "container/bridge"
+    }
+  ],
+  "portDefinitions": []
+}

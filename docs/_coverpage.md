@@ -2,11 +2,11 @@
 
 <img src="logo_bright.png" width="150px">
 
-# uEngine Meter <small>1.0</small>
+# Killbill Meter <small>1.0</small>
 
 > Subscription usage metering open source.
 
-uEngineMeter's main component includes :
+KillbillMeter's main component includes :
  
 * Multiple subscription usage scenarios
 * Usage limit detection

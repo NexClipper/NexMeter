@@ -111,3 +111,4 @@ CREATE INDEX email_notifications_configuration_kb_tenant_id ON email_notificatio
 CREATE INDEX email_notifications_configuration_event_type_kb_tenant_id ON email_notifications_configuration(event_type, kb_tenant_id);
 ```
 
+

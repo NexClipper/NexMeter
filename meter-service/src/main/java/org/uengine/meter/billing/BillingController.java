@@ -32,6 +32,9 @@ public class BillingController {
     @Autowired
     private BillingService billingService;
 
+    @Autowired
+    private BillingRedisRepository billingRedisRepository;
+
     private final CopyOnWriteArrayList<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
     private final Log logger = LogFactory.getLog(getClass());
@@ -50,7 +53,8 @@ public class BillingController {
 
     @GetMapping(value = "/subscriptions", produces = "application/json")
     public Object getUserSubscriptions(@RequestParam(value = "user", required = false) String user) {
-        return billingService.getUserSubscriptions(user, true);
+        return billingRedisRepository.findByUserName(user);
+        //return billingService.getUserSubscriptions(user, true);
     }
 
     @GetMapping("/emitter")
