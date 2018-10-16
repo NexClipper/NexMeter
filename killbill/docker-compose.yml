@@ -1,0 +1,34 @@
+version: '3.3'
+
+services:
+  db:
+    image: killbill/mariadb:0.20
+    volumes:
+      - /Users/uengine/docker/killbill:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=killbill
+
+  killbill:
+    image: sppark/killbill:0.20.2
+    ports:
+      - "8090:8080"
+    environment:
+      - KILLBILL_DAO_URL=jdbc:mysql://db:3306/killbill
+      - KILLBILL_DAO_USER=root
+      - KILLBILL_DAO_PASSWORD=killbill
+      - TEST_MODE=true
+
+  kaui:
+    image: killbill/kaui:1.0.4
+    ports:
+      - "9090:8080"
+    environment:
+      - KAUI_CONFIG_DAO_URL=jdbc:mysql://db:3306/kaui
+      - KAUI_CONFIG_DAO_USER=root
+      - KAUI_CONFIG_DAO_PASSWORD=killbill
+      - KAUI_KILLBILL_URL=http://killbill:8090
+
+volumes:
+  data-volume:

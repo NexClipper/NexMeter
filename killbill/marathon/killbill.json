@@ -1,0 +1,73 @@
+{
+  "id": "/billing-kb",
+  "backoffFactor": 1.15,
+  "backoffSeconds": 1,
+  "constraints": [
+  ],
+  "container": {
+    "portMappings": [
+      {
+        "containerPort": 8080,
+        "hostPort": 0,
+        "protocol": "tcp",
+        "servicePort": 12002
+      }
+    ],
+    "type": "DOCKER",
+    "volumes": [
+    ],
+    "docker": {
+      "image": "sppark/killbill:0.20.2",
+      "forcePullImage": false,
+      "privileged": false,
+      "parameters": [
+      ]
+    }
+  },
+  "cpus": 1.5,
+  "disk": 0,
+  "env": {
+    "KILLBILL_DAO_URL": "jdbc:mysql://192.168.0.162:12001/killbill",
+    "KILLBILL_DAO_USER": "root",
+    "KILLBILL_DAO_PASSWORD": "killbill",
+    "TEST_MODE": "true"
+  },
+  "healthChecks": [
+    {
+      "gracePeriodSeconds": 300,
+      "intervalSeconds": 60,
+      "maxConsecutiveFailures": 3,
+      "timeoutSeconds": 20,
+      "delaySeconds": 15,
+      "protocol": "COMMAND",
+      "command": {
+        "value": "pwd"
+      }
+    }
+  ],
+  "instances": 1,
+  "labels": {
+    "HAPROXY_GROUP": "external,internal",
+    "HAPROXY_0_REDIRECT_TO_HTTPS": "false",
+    "HAPROXY_0_VHOST": "billing.nexclipper.com"
+  },
+  "maxLaunchDelaySeconds": 3600,
+  "mem": 3072,
+  "gpus": 0,
+  "networks": [
+    {
+      "mode": "container/bridge"
+    }
+  ],
+  "requirePorts": false,
+  "upgradeStrategy": {
+    "maximumOverCapacity": 1,
+    "minimumHealthCapacity": 0
+  },
+  "killSelection": "YOUNGEST_FIRST",
+  "unreachableStrategy": {
+    "inactiveAfterSeconds": 0,
+    "expungeAfterSeconds": 0
+  },
+  "fetch": []
+}

@@ -1,0 +1,73 @@
+{
+  "id": "/billing-kaui",
+  "backoffFactor": 1.15,
+  "backoffSeconds": 1,
+  "constraints": [
+  ],
+  "container": {
+    "portMappings": [
+      {
+        "containerPort": 8080,
+        "hostPort": 0,
+        "protocol": "tcp",
+        "servicePort": 12003
+      }
+    ],
+    "type": "DOCKER",
+    "volumes": [
+    ],
+    "docker": {
+      "image": "killbill/kaui:1.0.4",
+      "forcePullImage": false,
+      "privileged": false,
+      "parameters": [
+      ]
+    }
+  },
+  "cpus": 1,
+  "disk": 0,
+  "env": {
+    "KAUI_CONFIG_DAO_URL": "jdbc:mysql://192.168.0.162:12001/kaui",
+    "KAUI_CONFIG_DAO_USER": "root",
+    "KAUI_CONFIG_DAO_PASSWORD": "killbill",
+    "KAUI_KILLBILL_URL": "http://192.168.0.162:12002"
+  },
+  "healthChecks": [
+    {
+      "gracePeriodSeconds": 300,
+      "intervalSeconds": 60,
+      "maxConsecutiveFailures": 3,
+      "timeoutSeconds": 20,
+      "delaySeconds": 15,
+      "protocol": "COMMAND",
+      "command": {
+        "value": "pwd"
+      }
+    }
+  ],
+  "instances": 1,
+  "labels": {
+    "HAPROXY_GROUP": "external,internal",
+    "HAPROXY_0_REDIRECT_TO_HTTPS": "false",
+    "HAPROXY_0_VHOST": "kaui.nexclipper.com"
+  },
+  "maxLaunchDelaySeconds": 3600,
+  "mem": 1024,
+  "gpus": 0,
+  "networks": [
+    {
+      "mode": "container/bridge"
+    }
+  ],
+  "requirePorts": false,
+  "upgradeStrategy": {
+    "maximumOverCapacity": 1,
+    "minimumHealthCapacity": 0
+  },
+  "killSelection": "YOUNGEST_FIRST",
+  "unreachableStrategy": {
+    "inactiveAfterSeconds": 0,
+    "expungeAfterSeconds": 0
+  },
+  "fetch": []
+}
