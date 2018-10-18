@@ -140,7 +140,7 @@ Create killbill notification url and tenant config
 ```
 POST /1.0/kb/tenants/uploadPerTenantConfig
 {
- "org.killbill.meter.url":"http://<metering-url>/meter/record/usageItems"
+ "org.killbill.meter.url":"http://<metering-url>/meter/record/items"
 }
 
 

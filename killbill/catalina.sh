@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CATALINA_OPTS="$CATALINA_OPTS -server -Xms1024m -Xmx2048m -XX:NewSize=512m -XX:MaxNewSize=1024m -XX:PermSize=512m -XX:MaxPermSize=1024m -Djava.awt.headless=true"
+CATALINA_OPTS="$CATALINA_OPTS -server -agentlib:jdwp=transport=dt_socket,address=8001,server=y,suspend=n -Xms1024m -Xmx2048m -XX:NewSize=512m -XX:MaxNewSize=1024m -XX:PermSize=512m -XX:MaxPermSize=1024m -Djava.awt.headless=true"
 
 JAVA_OPTS="$JAVA_OPTS -Djava.security.egd=file:/dev/./urandom
 -Dorg.killbill.dao.url=$KILLBILL_DAO_URL

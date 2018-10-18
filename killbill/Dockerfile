@@ -61,5 +61,5 @@ RUN rm -rf /killbill/webapps/kaui* && rm -rf /killbill/webapps/ROOT
 RUN chmod +x /killbill/webapps/ROOT.war
 RUN chmod +x /killbill/bin/catalina.sh
 
-EXPOSE 8080
+EXPOSE 8080 8001
 CMD ["sh", "/killbill/bin/catalina.sh", "run"]

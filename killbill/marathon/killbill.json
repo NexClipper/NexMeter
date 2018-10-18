@@ -11,6 +11,12 @@
         "hostPort": 0,
         "protocol": "tcp",
         "servicePort": 12002
+      },
+      {
+        "containerPort": 8001,
+        "hostPort": 0,
+        "protocol": "tcp",
+        "servicePort": 12009
       }
     ],
     "type": "DOCKER",
@@ -18,7 +24,7 @@
     ],
     "docker": {
       "image": "sppark/killbill:0.20.2",
-      "forcePullImage": false,
+      "forcePullImage": true,
       "privileged": false,
       "parameters": [
       ]

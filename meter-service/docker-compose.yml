@@ -1,0 +1,99 @@
+version: '3.3'
+
+services:
+#  redis:
+#    image: redis:latest
+#    container_name: redis
+#    ports:
+#      - "6379:6379"
+#
+#  kafka:
+#    image: wurstmeister/kafka
+#    container_name: kafka
+#    ports:
+#      - "9092:9092"
+#    environment:
+#      - KAFKA_ADVERTISED_HOST_NAME=127.0.0.1
+##      - KAFKA_ADVERTISED_HOST_NAME=kafka
+#      - KAFKA_ADVERTISED_PORT=9092
+#      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+#    depends_on:
+#      - zookeeper
+#
+#  zookeeper:
+#    image: wurstmeister/zookeeper
+#    ports:
+#      - "2181:2181"
+#    environment:
+#      - KAFKA_ADVERTISED_HOST_NAME=zookeeper
+#
+#  db:
+#    image: killbill/mariadb:0.20
+#    volumes:
+#      - /Users/uengine/docker/killbill:/var/lib/mysql
+#    ports:
+#      - "3306:3306"
+#    environment:
+#      - MYSQL_ROOT_PASSWORD=killbill
+#
+#  influxdb:
+#    image: influxdb
+#    volumes:
+#      - /Users/uengine/docker/influxdb:/var/lib/influxdb
+#    ports:
+#      - "8086:8086"
+#    environment:
+#      - INFLUXDB_DB=meter
+#      - INFLUXDB_ADMIN_ENABLED=true
+#      - INFLUXDB_ADMIN_USER=admin
+#      - INFLUXDB_ADMIN_PASSWORD=password
+#
+#  killbill:
+#    image: sppark/killbill:0.20.2
+#    ports:
+#      - "8090:8080"
+#    environment:
+#      - KILLBILL_DAO_URL=jdbc:mysql://db:3306/killbill
+#      - KILLBILL_DAO_USER=root
+#      - KILLBILL_DAO_PASSWORD=killbill
+#      - TEST_MODE=true
+#
+#  kaui:
+#    image: killbill/kaui:1.0.4
+#    ports:
+#      - "9090:8080"
+#    environment:
+#      - KAUI_CONFIG_DAO_URL=jdbc:mysql://db:3306/kaui
+#      - KAUI_CONFIG_DAO_USER=root
+#      - KAUI_CONFIG_DAO_PASSWORD=killbill
+#      - KAUI_KILLBILL_URL=http://killbill:8090
+#
+  meter-service:
+#    depends_on:
+#      - kafka
+#      - db
+#      - redis
+#      - influxdb
+    image: sppark/meter:v1
+    ports:
+      - "8080:8080"
+      - "8001:8001"
+    restart: always
+    environment:
+      SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS: 192.168.0.65:9092
+      SPRING_REDIS: 192.168.0.65:6379
+      SPRING_INFLUXDB_URL: http://192.168.0.65:8086
+      SPRING_INFLUXDB_USERNAME: admin
+      SPRING_INFLUXDB_PASSWORD: password
+      SPRING_INFLUXDB_DATABASE: meter
+      SPRING_DATASOURCE_URL: jdbc:mariadb://192.168.0.65:3306/killbill
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: killbill
+      KILLBILL_URL: http://192.168.0.65:8090
+      KILLBILL_USERNAME: admin
+      KILLBILL_PASSWORD: password
+      KILLBILL_APIKEY: admin
+      KILLBILL_APISECRET: password
+
+volumes:
+  data-volume:

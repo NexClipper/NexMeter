@@ -27,6 +27,13 @@
         "labels": {},
         "protocol": "tcp",
         "servicePort": 12004
+      },
+      {
+        "containerPort": 8001,
+        "hostPort": 0,
+        "labels": {},
+        "protocol": "tcp",
+        "servicePort": 12005
       }
     ]
   },
