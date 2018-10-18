@@ -296,9 +296,62 @@ curl -X POST \
 
 **AVG/PAEK** unit 의 사용량을 보낼때는 어플리케이션의 상황에 따라 30분 ~ 한시간 주기로 사용자 별로 amount 를 집계하여 보내면 됩니다. (자주 보낼수록 더 정확해집니다.)
 
-**SUM** unit 의 사용량을 보낼때는 Api gateway 등에서 사용량이 발생할 때 마다 보내면 됩니다.
+**SUM** unit 의 사용량을 보낼때는 Api gateway 등에서 사용량이 발생할 때 마다 보내면 됩니다. 예를 들면 Zuul 의 postFilter 에서 사용자 토큰을 통해
+ 사용자 정보를 얻고, 라우팅 패스를 통해 어떤 unit 인지 알아낸 다음 amount: 1 로 보내면 됩니다.
 
 
+# 서비스 제공 전 미터링 서버 활용
+
+Limitation, subscription 정보등은 서비스 제공에 앞서 빈번하게 api gateway 등에서 호출 될 수 있기 때문에,
+Redis 에 항시 관련 데이터 풀을 올려놓으므로 10ms 이내에 응답이 가능합니다. 
+
+## Limitation check before service
+
+서비스를 제공하기 전에 사용자의 limitation 을 체크하기.
+
+```
+curl -X GET \
+  'http://localhost:8080/meter/limit/check/analytics?user=tester@gmail.com' \
+  -H 'Cache-Control: no-cache' \
+  -H 'Content-Type: application/json'
+  
+{
+    "user": "tester@gmail.com",
+    "unit": "analytics",
+    "current": 320,
+    "remaining": 780,
+    "reset": 86400000
+}  
+```
+
+- current: 현재 사용량
+- remaining: 남은 사용량
+- reset: 초기화까지 남은 시간
+
+
+## User subscription check before service
+
+서비스를 제공하기 전 사용자가 어떤 plan 을 구독중인지 확인하기.
+
+```
+curl -X GET \
+  'http://localhost:8080/meter/billing/subscriptions?user=tester%40gmail.com' \
+  -H 'Cache-Control: no-cache' \
+  -H 'Content-Type: application/json'
+  
+  
+{
+    "accountId": "ac1d1a3a-0c63-4dc3-8b22-9076861c600f",
+    "subscriptions": [
+        {
+            "id": "a0205b41-31c0-4c27-a1bd-13d3fa7d9180",
+            "plan": "pro-monthly",
+            "product": "NexCloud",
+            "category": "BASE"
+        }
+    ]
+}  
+```
 
 
 

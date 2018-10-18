@@ -1,5 +1,6 @@
 - Killbill Meter Guide
   - [Concept](meter/concept.md)
-  - [Tutorial1](meter/tutorial1.md)
-  - [Tutorial2](meter/tutorial2.md)
+  - [Tutorial - Install](meter/tutorial1.md)
+  - [Tutorial - Metering Integration](meter/tutorial2.md)
+  - [Tutorial - Operation](meter/tutorial3.md)  
 
