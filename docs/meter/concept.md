@@ -309,7 +309,15 @@ Below is an example of an aggregate with free counting applied.
  
 ![](image/limit.png)
 
+## Sample snapshots
 
+![](image/sample1.png)
+
+![](image/sample2.png)
+
+![](image/sample3.png)
+
+![](image/sample4.png)
 
  
 

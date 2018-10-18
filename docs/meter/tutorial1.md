@@ -52,6 +52,15 @@ CREATE INDEX email_notifications_configuration_kb_tenant_id ON email_notificatio
 CREATE INDEX email_notifications_configuration_event_type_kb_tenant_id ON email_notifications_configuration(event_type, kb_tenant_id);
 ```
 
+## Create first tenant
+
+1. Visit `http://<KAUI URL>`
+
+2. login as `admin/password`
+
+3. Create tenant as **apiKey:admin**, **apiSecret:password**
+
+
 ## run metering compose file
 
 The metering service ddl will be automatically created in the killbill database.
@@ -290,16 +299,6 @@ POST /1.0/kb/tenants/registerNotificationCallback?cb=http://<metering-url>/meter
     </priceLists>
 </catalog>
 ```
-
-## Sample snapshots
-
-![](image/sample1.png)
-
-![](image/sample2.png)
-
-![](image/sample3.png)
-
-![](image/sample4.png)
 
 
 
