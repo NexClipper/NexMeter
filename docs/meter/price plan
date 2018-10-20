@@ -4,6 +4,15 @@
 
 ![](image/priceplan.png)
 
+## Use Case
+
+Let's take a company as an example. 
+The company specializes in cloud monitoring and provides AI-based anomaly detection api as a business strategy item.
+
+The company considered the following revenue model:
+
+![](image/table1.png)
+
 
 *Additional containers will be billed at $0.002 per container per hour.
 ** Later , upfront process
