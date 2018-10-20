@@ -1,0 +1,21 @@
+# NexClipper's Price Plan
+
+### Price Plan
+![](image/priceplan.png)
+
+
+*Additional containers will be billed at $0.002 per container per hour.
+** Later , upfront process
+*** Later/ Additional url, uptime check will be billed at $0.05 per helth check per hour.
+**** Later / will be limited by API transaction upto 10 for Basic, 50 for Standard  and  $2 per 50  additional request  upto 500 daily
+The billing cycle begins the first of the month, regardless of when you sign up. Your first month will be prorated based on your actual signup date.
+You’ll be billed for your Dynatrace usage at the end of each 30-day billing period.
+NexClipper meters the count of hosts, containers hourly. The billable count of hosts and containers is calculated at the end of the month
+
+
+A host is any physical or virtual OS instance that you monitor with NexClipper
+
+
+
+
+
