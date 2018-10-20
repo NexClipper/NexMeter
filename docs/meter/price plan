@@ -1,8 +1,25 @@
-# NexClipper's Price Plan
+# Concept
 
-### Price Plan
+**Many subscription-based billing platforms support usage-based billing.
+  However, companies still need to be able to measure usage and inform the platform of the exact amount.**
 
-![](image/priceplan.png)
+In a traditional usage aggregation method, the batch process was run at the daily or monthly settlement time to display the customer's usage.
+
+In modern microservice architectures, service delivery filtering for most customer levels occurs at the API gateway, and sometimes the microsecurity service itself queries the user charging status and decides whether to provide the service.
+
+In service models that generate revenue from computing usage, API requests, etc. (or other billing models that require real-time responsiveness)
+After the service provisioning, it is necessary to query the data center every time the user is charged or consumed, which causes the performance degradation of the whole system.
+
+In order to solve this problem, if you implement cache for every service, it will cause a decrease in development performance and an increase in system complexity.
+
+**Therefore, you need independent services that can collect usage or provide usage information 
+without affecting the source code of existing applications, 
+and should be available as a simple Kafka integration or agent installation.**
+
+**First of all, in the process of user billing / usage inquiry in the application
+    The objective is to process the incoming usage stream in real time and respond within a few milliseconds 
+    without compromising existing performance.**
+ 
 
 ## Use Case
 
@@ -12,6 +29,8 @@ The company specializes in cloud monitoring and provides AI-based anomaly detect
 The company considered the following revenue model:
 
 ![](image/table1.png)
+
+
 
 
 *Additional containers will be billed at $0.002 per container per hour.
