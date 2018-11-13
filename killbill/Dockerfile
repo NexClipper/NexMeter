@@ -54,12 +54,14 @@ ADD ./ruby_plugins.zip /ruby_plugins.zip
 RUN unzip /ruby_plugins.zip -d /var/tmp/bundles/plugins/ruby
 RUN unzip /java_plugins.zip -d /var/tmp/bundles/plugins/java
 
+ADD ./run.sh /killbill/bin/run.sh
 ADD ./catalina.sh /killbill/bin/catalina.sh
 ADD ./killbill-profiles-killbill-0.20.2.war /killbill/webapps/ROOT.war
 
 RUN rm -rf /killbill/webapps/kaui* && rm -rf /killbill/webapps/ROOT
 RUN chmod +x /killbill/webapps/ROOT.war
+RUN chmod +x /killbill/bin/run.sh
 RUN chmod +x /killbill/bin/catalina.sh
 
 EXPOSE 8080 8001
-CMD ["sh", "/killbill/bin/catalina.sh", "run"]
+CMD ["sh", "/killbill/bin/run.sh"]

@@ -18,7 +18,7 @@ services:
       - KILLBILL_DAO_URL=jdbc:mysql://db:3306/killbill
       - KILLBILL_DAO_USER=root
       - KILLBILL_DAO_PASSWORD=killbill
-      - TEST_MODE=true
+      - TEST_MODE=false
 
   kaui:
     image: killbill/kaui:1.0.4
@@ -28,7 +28,7 @@ services:
       - KAUI_CONFIG_DAO_URL=jdbc:mysql://db:3306/kaui
       - KAUI_CONFIG_DAO_USER=root
       - KAUI_CONFIG_DAO_PASSWORD=killbill
-      - KAUI_KILLBILL_URL=http://killbill:8090
+      - KAUI_KILLBILL_URL=http://killbill:8080
 
 volumes:
   data-volume:
