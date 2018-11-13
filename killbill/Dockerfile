@@ -64,4 +64,4 @@ RUN chmod +x /killbill/bin/run.sh
 RUN chmod +x /killbill/bin/catalina.sh
 
 EXPOSE 8080 8001
-CMD ["sh", "/killbill/bin/run.sh"]
+CMD ["bash", "/killbill/bin/run.sh"]
